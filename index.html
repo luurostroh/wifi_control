@@ -1,0 +1,257 @@
+<!--
+   index.html
+   
+   Copyright 2020 oem <oem@PC266>
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301, USA.
+   
+   
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cz" lang="cz">
+<script src='https://kit.fontawesome.com/a076d05399.js'></script>
+
+<head>
+  <title>wifi control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <meta name="generator" content="Geany 1.30.1" />
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+    crossorigin="anonymous">
+</head>
+<style>
+  /* Style tab links */
+
+  .tablink {
+    background-color: #555;
+    color: white;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    font-size: 17px;
+    width: 50%;
+  }
+
+  .tablink:hover {
+    background-color: #777;
+  }
+
+  /* Style the tab content (and add height:100% for full page content) */
+
+  .tabcontent {
+    color: white;
+    display: none;
+    padding: 100px 20px;
+    height: 100%;
+  }
+
+
+  #termostat {
+    background-color: green;
+  }
+
+  #prehled {
+    background-color: blue;
+  }
+
+
+  /*-----------------------------------------*/
+
+
+
+
+
+
+    .main {
+      width: 500px;
+
+    }
+    .btn {
+      width: 40%;
+      height: 200px;
+    }
+    .div1 {
+    
+    }
+    .fas {
+      font-size: 50px;
+      margin: 10px;
+    }
+    .dummy {
+      height: 300px;
+    }
+
+
+    .setTemp {
+      height: 50px;
+      width: 100px;
+      font-size: 34px;
+
+    }
+
+    .setTime {
+      height: 49px;
+      width: 110px;
+      font-size: 34px;
+    }
+
+  @media only screen and (max-width: 768px) {
+    .btn {
+      width: 40%;
+      height: 30px;
+    }
+    .fas {
+      font-size: 60px;
+    }
+
+    /*html,body{
+      height: 100%;
+      margin: 0px;
+    }*/
+    .main {
+      width: 100%;
+
+    }
+    .space{
+      height: 100px;
+    }
+  }
+</style>
+
+<script>
+  var Socket;
+  function init() {
+    Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
+    Socket.onmessage = function (event) {
+      var i1 = document.getElementById("in1");
+      var i2 = document.getElementById("in2");
+      var i3 = document.getElementById("in3");
+      var i4 = document.getElementById("in4");
+      var data = event.data;
+      document.getElementById("rxConsole").value += event.data;
+    }
+  }
+
+  function btn1click() {
+    var btn = document.getElementById("r1");
+    if (btn.style.backgroundColor == "gray") btn.style.backgroundColor = "green";
+    else btn.style.backgroundColor = "gray";
+    // else led.style.color = "red";
+  }
+  function btn2click() {
+    var btn = document.getElementById("r2");
+    if (btn.style.backgroundColor == "gray") btn.style.backgroundColor = "green";
+    else btn.style.backgroundColor = "gray";
+  }
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  function openPage(pageName, elmnt, color) {
+    // Hide all elements with class="tabcontent" by default */
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+
+    // Remove the background color of all tablinks/buttons
+    tablinks = document.getElementsByClassName("tablink");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].style.backgroundColor = "";
+    }
+
+    // Show the specific tab content
+    document.getElementById(pageName).style.display = "block";
+
+    // Add the specific color to the button used to open the tab content
+    elmnt.style.backgroundColor = color;
+  }
+</script>
+
+<body onload="javascript:init()">
+
+  <div class="main">
+    <button class="tablink" onclick="openPage('prehled', this, 'blue')">Přehled</button>
+    <button class="tablink" onclick="openPage('termostat', this, 'green')">Termostat</button>
+    <div id=prehled class="tabcontent">
+      <div class="container-sm bg-info align-self-center" style=" width: max-content; padding: 3px;">
+        <div class=div1>
+          <button type="button" class="btn btn-secondary btn-lg" onclick="btn1click()" id="r1" style="height: 5em; margin:10px; ">RELE 1</button>
+          <button type="button" class="btn btn-secondary btn-lg" onclick="btn2click()" id="r2" style="height: 5em; margin:10px;">RELE 2</button>
+        </div>
+        <div class="space"></div>
+        <div style="margin: auto;">
+          <i id="in1" class="fas fa-square" style="color:gray;margin:4px;"></i>
+          <i id="in2" class="fas fa-square" style="color:gray;margin:4px;"></i>
+          <i id="in3" class="fas fa-square" style="color:gray;margin:4px;"></i>
+          <i id="in4" class="fas fa-square" style="color:gray;margin:4px;"></i>
+        </div>
+      </div>
+    </div>
+    <div id="termostat" class="tabcontent" style="margin:auto">
+      <table style="margin:auto;">
+        <thead>
+          <tr>
+            <th>teplota</th>
+            <th>čas</th>
+          </tr>
+
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <input id="t1" class="setTemp" type="number" min="0" max="50" step="0.5"></input>
+            </td>
+            <td>
+              <input id="tt1" class="setTime" type="time"></input>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input class="setTemp" type="number" min="0" max="50" step="0.5"></input>
+            </td>
+            <td>
+              <input class="setTime" type="time"></input>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input class="setTemp" type="number" min="0" max="50" step="0.5"></input>
+            </td>
+            <td>
+              <input class="setTime" type="time"></input>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input class="setTemp" type="number" min="0" max="50" step="0.5"></input>
+            </td>
+            <td>
+              <input class="setTime" type="time"></input>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+</body>
+
+</html>
