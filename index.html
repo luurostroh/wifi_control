@@ -46,7 +46,7 @@
     cursor: pointer;
     padding: 14px 16px;
     font-size: 17px;
-    width: 50%;
+    width: 33%;
   }
 
   .tablink:hover {
@@ -62,7 +62,9 @@
     height: 100%;
   }
 
-
+/*.p{
+  text-align: center;
+}*/
   #termostat {
     background-color: green;
   }
@@ -71,65 +73,74 @@
     background-color: blue;
   }
 
-
+#spinacky{
+  background-color: yellow;
+}
   /*-----------------------------------------*/
 
+  .main {
+    width: 600px;
+
+  }
+
+.p{
+  text-align: center;
+}
+  .space {
+    height: 200px;
+  }
+
+  .btn {
+    width: 135px;
+    height: 80px;
+  }
+
+  .div1 {}
+
+  .fas {
+    font-size: 50px;
+    margin: 10px;
+  }
+
+  .dummy {
+    height: 300px;
+  }
 
 
+  .setTemp {
+    height: 50px;
+    width: 100px;
+    font-size: 34px;
 
+  }
 
-
-    .main {
-      width: 500px;
-
-    }
-    .btn {
-      width: 40%;
-      height: 200px;
-    }
-    .div1 {
-    
-    }
-    .fas {
-      font-size: 50px;
-      margin: 10px;
-    }
-    .dummy {
-      height: 300px;
-    }
-
-
-    .setTemp {
-      height: 50px;
-      width: 100px;
-      font-size: 34px;
-
-    }
-
-    .setTime {
-      height: 49px;
-      width: 110px;
-      font-size: 34px;
-    }
+  .setTime {
+    height: 49px;
+    width: 110px;
+    font-size: 34px;
+  }
 
   @media only screen and (max-width: 768px) {
+
+    body,
+    html {
+      height: 100%;
+      margin: 0;
+    }
     .btn {
-      width: 40%;
-      height: 30px;
+      width: 75px;
+      height: 70px;
     }
     .fas {
       font-size: 60px;
     }
 
-    /*html,body{
-      height: 100%;
-      margin: 0px;
-    }*/
     .main {
       width: 100%;
+      height: 100%;
 
     }
-    .space{
+    .space {
       height: 100px;
     }
   }
@@ -149,6 +160,10 @@
     }
   }
 
+function SaveData(){
+
+}
+
   function btn1click() {
     var btn = document.getElementById("r1");
     if (btn.style.backgroundColor == "gray") btn.style.backgroundColor = "green";
@@ -159,6 +174,35 @@
     var btn = document.getElementById("r2");
     if (btn.style.backgroundColor == "gray") btn.style.backgroundColor = "green";
     else btn.style.backgroundColor = "gray";
+  }
+  function btn3click() {
+    var btn = document.getElementById("r3");
+    if (btn.style.backgroundColor == "gray") btn.style.backgroundColor = "green";
+    else btn.style.backgroundColor = "gray";
+    // else led.style.color = "red";
+  }
+  function btn4click() {
+    var btn = document.getElementById("r4");
+    if (btn.style.backgroundColor == "gray") btn.style.backgroundColor = "green";
+    else btn.style.backgroundColor = "gray";
+  }
+
+  function OutputSelect(selectedOut){
+     document.getElementById("sel1").innerText ="";
+     document.getElementById("sel2").innerText ="";
+     document.getElementById("sel3").innerText ="";
+     document.getElementById("sel4").innerText ="";
+    
+
+  switch(selectedOut.id)
+  {
+    
+    case "rbtR1": document.getElementById("sel1").innerText = "termostat"; break;
+    case "rbtR2": document.getElementById("sel2").innerText = "termostat"; break;
+    case "rbtR3": document.getElementById("sel3").innerText = "termostat"; break;
+    case "rbtR4": document.getElementById("sel4").innerText = "termostat"; break;
+  }
+
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -182,25 +226,53 @@
     // Add the specific color to the button used to open the tab content
     elmnt.style.backgroundColor = color;
   }
+
+  document.getElementById("defaultOpen").click();
 </script>
 
 <body onload="javascript:init()">
 
   <div class="main">
-    <button class="tablink" onclick="openPage('prehled', this, 'blue')">Přehled</button>
+    <button class="tablink" id="defaultOpen" onclick="openPage('prehled', this, 'blue')">Přehled</button>
     <button class="tablink" onclick="openPage('termostat', this, 'green')">Termostat</button>
+    <button class="tablink" onclick="openPage('spinacky', this, 'green')">Spínačky</button>
     <div id=prehled class="tabcontent">
-      <div class="container-sm bg-info align-self-center" style=" width: max-content; padding: 3px;">
+      <div class="container-sm bg-info align-self-center" style=" width: auto; padding: 3px;">
         <div class=div1>
-          <button type="button" class="btn btn-secondary btn-lg" onclick="btn1click()" id="r1" style="height: 5em; margin:10px; ">RELE 1</button>
-          <button type="button" class="btn btn-secondary btn-lg" onclick="btn2click()" id="r2" style="height: 5em; margin:10px;">RELE 2</button>
+          <table>
+            <tbody>
+              <tr>
+                <td>
+                  <button type="button" class="btn btn-secondary btn-lg" onclick="btn1click()" id="r1">RELE 1</button>
+                </td>
+                <td>
+                  <button type="button" class="btn btn-secondary btn-lg" onclick="btn2click()" id="r2">RELE 2</button>
+                </td>
+                <td>
+                  <button type="button" class="btn btn-secondary btn-lg" onclick="btn3click()" id="r3">OUT 1</button>
+                </td>
+                <td>
+                  <button type="button" class="btn btn-secondary btn-lg" onclick="btn4click()" id="r4">OUT 2</button>
+                </td>
+              </tr>
+              <tr>
+                <td><p id="sel1">abcd</p></td>
+                <td><p id="sel2"></p></td>
+                <td><p id="sel3"></p></td>
+                <td><p id="sel4"></p></td>
+              </tr>
+            </tbody>
+          </table>
+
         </div>
-        <div class="space"></div>
+        <div class="space">
+
+        </div>
         <div style="margin: auto;">
-          <i id="in1" class="fas fa-square" style="color:gray;margin:4px;"></i>
-          <i id="in2" class="fas fa-square" style="color:gray;margin:4px;"></i>
-          <i id="in3" class="fas fa-square" style="color:gray;margin:4px;"></i>
-          <i id="in4" class="fas fa-square" style="color:gray;margin:4px;"></i>
+          <button type="button" class="btn btn-warning btn-lg" id="in1">IN 1</button>
+          <button type="button" class="btn btn-warning btn-lg" id="in2">IN 2</button>
+          <button type="button" class="btn btn-warning btn-lg" id="in3">IN 3</button>
+          <button type="button" class="btn btn-warning btn-lg" id="in4">IN 4</button>
         </div>
       </div>
     </div>
@@ -248,6 +320,29 @@
           </tr>
         </tbody>
       </table>
+      <form>
+            <fieldset style="border:1;">
+             <legend>Výstup termostatu</legend>
+             <div style="margin:auto">
+                <input class="rbt" type="radio" name="prepinac" id="rbtR1" onclick="OutputSelect(this)">  relé 1</input><br/>
+                <input class="rbt" type="radio" name="prepinac" id="rbtR2" onclick="OutputSelect(this)">  relé 2</input><br/>
+                <input class="rbt" type="radio" name="prepinac" id="rbtR3" onclick="OutputSelect(this)">  OUT 1</input><br/>
+                <input class="rbt" type="radio" name="prepinac" id="rbtR4" onclick="OutputSelect(this)">  OUT 2</input>
+             </div>
+
+             <!--label for="fname">First name:</label>
+             <input type="text" id="fname" name="fname"><br><br>
+             <label for="lname">Last name:</label>
+             <input type="text" id="lname" name="lname"><br><br>
+             <label for="email">Email:</label>
+             <input type="email" id="email" name="email"><br><br>
+             <label for="birthday">Birthday:</label>
+             <input type="date" id="birthday" name="birthday"><br><br>
+             <input type="submit" value="Submit"-->
+            </fieldset>
+
+      </form>
+      <div><button type="submit" onclick="SaveData">ULOŽIT</button></div>
     </div>
   </div>
 
