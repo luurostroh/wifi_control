@@ -21,8 +21,7 @@
    
 -->
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cz" lang="cz">
 <script src='https://kit.fontawesome.com/a076d05399.js'></script>
 
@@ -31,25 +30,278 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="content-type" content="text/html;charset=utf-8" />
   <meta name="generator" content="Geany 1.30.1" />
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
-    crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 </head>
 <style>
+  /* 
+  ##Device = Desktops
+  ##Screen = 1281px to higher resolution desktops
+*/
 
+  @media (min-width: 1281px) {
+
+    body,
+    html {
+      text-align: center;
+    }
+
+ 
+
+    .btn {
+      width: 105px;
+      height: 100px;
+    }
+
+    th,
+    input,
+    optgroup,
+    select,
+    textarea {
+      font-size: 56px;
+    }
+
+    .main {
+      width: 800px;
+
+    }
+
+.space{
+  height: 150px;
+}
+    .mainTable{
+      margin: auto;
+    }
+  }
+
+  button[type=submit]{
+      margin-top: 150px;
+      font-size: 30px;
+    }
+
+    input[type=radio]+label{
+      font-size: 35px;
+    }
+
+    input[type=number]{
+      width: 140px;
+    }
+    #tempLabel{
+      font-size: 53px;
+    }
+  /* 
+  ##Device = Laptops, Desktops
+  ##Screen = B/w 1025px to 1280px
+*/
+
+  @media (min-width: 1025px) and (max-width: 1280px) {
+
+    body,
+    html {
+      text-align: center;
+    }
+
+    .main {
+      width: 600px;
+
+    }
+
+    .mainTable{
+      margin: auto;
+    }
+
+    .p {
+      text-align: center;
+    }
+
+    .space {
+      height: 200px;
+    }
+
+    .btn {
+      width: 135px;
+      height: 80px;
+    }
+
+
+    .setTemp {
+      height: 50px;
+      width: 100px;
+      font-size: 34px;
+
+    }
+
+    .setTime {
+      height: 49px;
+      width: 130px;
+      font-size: 34px;
+    }
+
+    th,
+    input,
+    optgroup,
+    select,
+    textarea {
+      font-size: 36px;
+    }
+
+    button[type=submit]{
+      margin-top: 150px;
+      font-size: 30px;
+    }
+  }
+
+  /* 
+  ##Device = Tablets, Ipads (portrait)
+  ##Screen = B/w 768px to 1024px
+*/
+
+  @media (min-width: 768px) and (max-width: 1024px) {
+
+
+    body,
+    html {
+      text-align: center;
+    }
+    .btn {
+      width: 120px;
+      height: 100px;
+    }
+
+  }
+
+  /* 
+  ##Device = Tablets, Ipads (landscape)
+  ##Screen = B/w 768px to 1024px
+*/
+
+  @media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+
+    .btn {
+      width: 105px;
+      height: 100px;
+    }
+
+  }
+
+  /* 
+  ##Device = Low Resolution Tablets, Mobiles (Landscape)
+  ##Screen = B/w 481px to 767px
+*/
+
+  @media (min-width: 481px) and (max-width: 767px) {
+
+    body,
+    html {
+      height: 100%;
+      margin: 0;
+      text-align: center;
+    }
+
+    .btn {
+      width: 100px;
+      height: 70px;
+    }
+
+
+    .main {
+      width: 100%;
+      height: 100%;
+
+    }
+
+.mainTable{
+  margin: auto;
+}
+    .space {
+      height: 150px;
+    }
+
+    th,
+    button,
+    input,
+    optgroup,
+    select,
+    textarea {
+      font-size: 56px;
+    }
+
+    .tablink {
+      font-size: 30px;
+    }
+
+    input[type=radio]+label {
+      font-size: 35px;
+    }
+
+    input[type=time],
+    input[type=number] {
+      font-size: 60px;
+    }
+
+    button[type=submit]{
+      margin-top: 150px;
+      font-size: 30px;
+    }
+    .setTemp {
+      width: 140px;
+      text-align: center;
+    }
+
+    .spc{
+      width: 20px;
+    }
+  }
+
+  /* 
+  ##Device = Most of the Smartphones Mobiles (Portrait)
+  ##Screen = B/w 320px to 479px
+*/
+
+  @media (min-width: 320px) and (max-width: 480px) {
+
+    body,
+    html {
+      height: 100%;
+      margin: 0;
+      text-align: center;
+    }
+
+    .btn {
+      width: 60px;
+      height: 60px;
+      font-size: 15px;
+    }
+
+    input[type=radio]+label,
+    input[type=checkbox]+label {
+      font-size: 18px;
+    }
+
+    input[type=time],
+    input[type=number] {
+      font-size: 30px;
+    }
+
+    button[type=submit]{
+      margin-top: 30px;
+      font-size: 25px;
+    }
+  }
 
   /*radio buttons*/
   input[type=radio],
-input[type=checkbox] {
+  input[type=checkbox] {
     display: none;
-}
+  }
 
-input[type=radio] + label,
-input[type=checkbox] + label {
+  input[type=radio]+label,
+  input[type=checkbox]+label {
     display: inline-block;
     margin: -2px;
     padding: 4px 12px;
     margin-bottom: 0;
-    font-size: 23px;
+    /*font-size: 23px;*/
     line-height: 40px;
     color: #333;
     text-align: center;
@@ -71,17 +323,17 @@ input[type=checkbox] + label {
     -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
     -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
-}
+  }
 
-input[type=radio]:checked + label,
-input[type=checkbox]:checked + label {
+  input[type=radio]:checked+label,
+  input[type=checkbox]:checked+label {
     background-image: none;
     outline: 0;
     -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
     -moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
     background-color: lightgreen;
-}
+  }
 
   /* Style tab links */
 
@@ -93,7 +345,7 @@ input[type=checkbox]:checked + label {
     outline: none;
     cursor: pointer;
     padding: 14px 16px;
-    font-size: 17px;
+    /*font-size: 17px;*/
     width: 33.33%;
   }
 
@@ -127,106 +379,6 @@ input[type=checkbox]:checked + label {
   }
 
   /*-----------------------------------------*/
-
-  body,
-  html {
-    text-align: center;
-  }
-
-  .main {
-    width: 600px;
-
-  }
-
-  .p {
-    text-align: center;
-  }
-
-  .space {
-    height: 200px;
-  }
-
-  .btn {
-    width: 135px;
-    height: 80px;
-  }
-
-
-
-  .fas {
-    font-size: 50px;
-    margin: 10px;
-  }
-
-  .dummy {
-    height: 300px;
-  }
-
-
-  .setTemp {
-    height: 50px;
-    width: 100px;
-    font-size: 34px;
-
-  }
-
-  .setTime {
-    height: 49px;
-    width: 130px;
-    font-size: 34px;
-  }
-
-    @media only screen and (max-width: 440px) {
-
-body,
-html {
-  height: 100%;
-  margin: 0;
-  text-align: center;
-}
-.btn {
-  width: 75px;
-  height: 70px;
-}
-.fas {
-  font-size: 60px;
-}
-
-.main {
-  width: 100%;
-  height: 100%;
-
-}
-.space {
-  height: 95px;
-}
-}
-
-  @media (max-width: 441px) and (max-width: 768px) {
-
-    body,
-    html {
-      height: 100%;
-      margin: 0;
-      text-align: center;
-    }
-    .btn {
-      width: 120px;
-      height: 100px;
-    }
-    .fas {
-      font-size: 60px;
-    }
-
-    .main {
-      width: 100%;
-      height: 100%;
-
-    }
-    .space {
-      height: 95px;
-    }
-  }
 </style>
 
 <script>
@@ -245,18 +397,36 @@ html {
   }
 
   function SaveData() {
-    switch (termostatLabel.id) {
+    var descripts = ["relé 1", "relé 2", "out 1", "out 2"];
 
-      case "rbtR1": document.getElementById("sel1").innerText = "termostat"; break;
-      case "rbtR2": document.getElementById("sel2").innerText = "termostat"; break;
-      case "rbtR3": document.getElementById("sel3").innerText = "termostat"; break;
-      case "rbtR4": document.getElementById("sel4").innerText = "termostat"; break;
+    var radioTstat = document.getElementsByName("prepTstat");
+    var radioSpin = document.getElementsByName("prepSpin");
+    var labels = document.getElementsByClassName("label");
+    for (i = 0; i < radioTstat.length; i++) {
+      if (radioTstat[i].checked == true) {
+        labels[i].innerText = "termostat";
+        radioSpin[i].disabled = true;
+        radioSpin[i].labels[0].innerText = "";
+
+      }
+      else {
+        radioSpin[i].disabled = false;
+        radioSpin[i].labels[0].innerText = descripts[i];
+        if (labels[i].innerText != "spinacky") labels[i].innerText = "";
+      }
+
     }
-    switch (spinackyLabel.id) {
-      case "rbtSp1": document.getElementById("sel1").innerText = "spínačky"; break;
-      case "rbtSp2": document.getElementById("sel2").innerText = "spínačky"; break;
-      case "rbtSp3": document.getElementById("sel3").innerText = "spínačky"; break;
-      case "rbtSp4": document.getElementById("sel4").innerText = "spínačky"; break;
+    for (i = 0; i < radioSpin.length; i++) {
+      if (radioSpin[i].checked == true) {
+        labels[i].innerText = "spínačky";
+        radioTstat[i].disabled = true;
+        radioTstat[i].labels[0].innerText = "";
+      }
+      else {
+        radioTstat[i].disabled = false;
+        radioTstat[i].labels[0].innerText = descripts[i];
+        if (labels[i].innerText != "termostat") labels[i].innerText = "";
+      }
     }
   }
 
@@ -289,8 +459,8 @@ html {
     document.getElementById("sel3").innerText = "";
     document.getElementById("sel4").innerText = "";
 
-    if (selectedOut.name == "prepinac") termostatLabel = selectedOut;
-    if (selectedOut.name == "prepinac2") spinackyLabel = selectedOut;
+    if (selectedOut.name == "prepTtsat") termostatLabel = selectedOut;
+    if (selectedOut.name == "prepSpin") spinackyLabel = selectedOut;
 
 
   }
@@ -327,62 +497,61 @@ html {
     <button class="tablink" onclick="openPage('termostat', this, 'green')">Termostat</button>
     <button class="tablink" onclick="openPage('spinacky', this, 'goldenrod')">Spínačky</button>
     <div id=prehled class="tabcontent">
-      <div class="container-sm  align-self-center" style=" width: auto; padding: 3px;background:#3f3ffd">
-        <div style="margin: auto;">
-          <table style="margin:auto;">
-            <tbody>
-              <tr>
-                <td>
-                  <button type="button" class="btn btn-secondary btn-lg" onclick="btn1click()" id="r1">RELE 1</button>
-                </td>
-                <td>
-                  <button type="button" class="btn btn-secondary btn-lg" onclick="btn2click()" id="r2">RELE 2</button>
-                </td>
-                <td>
-                  <button type="button" class="btn btn-secondary btn-lg" onclick="btn3click()" id="r3">OUT 1</button>
-                </td>
-                <td>
-                  <button type="button" class="btn btn-secondary btn-lg" onclick="btn4click()" id="r4">OUT 2</button>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <p id="sel1"></p>
-                </td>
-                <td>
-                  <p id="sel2"></p>
-                </td>
-                <td>
-                  <p id="sel3"></p>
-                </td>
-                <td>
-                  <p id="sel4"></p>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-        </div>
-        <div class="space">
-          <div style="margin-top:75px;">
-            <span id="tempLabel" style="width:50px;height:30px;font-size:24px;margin-top:20px; ">Teplota </span>
-            <span id="tempLabel" style="width:50px;height:30px;font-size:24px;margin-top:20px;color:black">23</span>
-            <span id="tempLabel" style="width:50px;height:30px;font-size:24px;margin-top:20px;color:black"> °C</span>
-          </div>
-        </div>
-        <div style="margin: auto;">
-          <button type="button" class="btn btn-warning btn-lg" id="in1">IN 1</button>
-          <button type="button" class="btn btn-warning btn-lg" id="in2">IN 2</button>
-          <button type="button" class="btn btn-warning btn-lg" id="in3">IN 3</button>
-          <button type="button" class="btn btn-warning btn-lg" id="in4">IN 4</button>
+      <div>
+      <div class="space"></div>
+      <table class="mainTable"  >
+        <tbody>
+          <tr>
+            <td>
+              <button type="button" class="btn btn-secondary btn-lg" onclick="btn1click()" id="r1">RELE 1</button>
+            </td>           
+            <td>
+              <button type="button" class="btn btn-secondary btn-lg" onclick="btn2click()" id="r2">RELE 2</button>
+            </td>
+            <td>
+              <button type="button" class="btn btn-secondary btn-lg" onclick="btn3click()" id="r3">OUT 1</button>
+            </td>
+            <td>
+              <button type="button" class="btn btn-secondary btn-lg" onclick="btn4click()" id="r4">OUT 2</button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p id="sel1" class="label"></p>
+            </td>
+            <td>
+              <p id="sel2" class="label"></p>
+            </td>
+            <td>
+              <p id="sel3" class="label"></p>
+            </td>
+            <td>
+              <p id="sel4" class="label"></p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="space">
+        <div style="margin-top:75px;">
+          <span id="tempLabel" style="width:50px;height:30px;font-size:24px;margin-top:20px; ">Teplota </span>
+          <span id="tempLabel" style="width:50px;height:30px;font-size:24px;margin-top:20px;color:black">23</span>
+          <span id="tempLabel" style="width:50px;height:30px;font-size:24px;margin-top:20px;color:black"> °C</span>
         </div>
       </div>
-    </div>
+      <div style="margin: auto;">
+        <button type="button" class="btn btn-warning btn-lg" id="in1">IN 1</button>
+        <button type="button" class="btn btn-warning btn-lg" id="in2">IN 2</button>
+        <button type="button" class="btn btn-warning btn-lg" id="in3">IN 3</button>
+        <button type="button" class="btn btn-warning btn-lg" id="in4">IN 4</button>
+      </div>
+      </div>
+    </div><!--end-->
     <div id="termostat" class="tabcontent" style="margin:auto">
       <table style="margin:auto;">
         <thead>
           <tr>
             <th>teplota</th>
+            <th class="spc"></th>
             <th>čas</th>
           </tr>
 
@@ -392,6 +561,7 @@ html {
             <td>
               <input id="t1" class="setTemp" type="number" min="0" max="50" step="0.5"></input>
             </td>
+            <td class="spc"></td>
             <td>
               <input id="tt1" class="setTime" type="time"></input>
             </td>
@@ -400,6 +570,7 @@ html {
             <td>
               <input class="setTemp" type="number" min="0" max="50" step="0.5"></input>
             </td>
+            <td class="spc"></td>
             <td>
               <input class="setTime" type="time"></input>
             </td>
@@ -408,6 +579,7 @@ html {
             <td>
               <input class="setTemp" type="number" min="0" max="50" step="0.5"></input>
             </td>
+            <td class="spc"></td>
             <td>
               <input class="setTime" type="time"></input>
             </td>
@@ -416,6 +588,7 @@ html {
             <td>
               <input class="setTemp" type="number" min="0" max="50" step="0.5"></input>
             </td>
+            <td class="spc"></td>
             <td>
               <input class="setTime" type="time"></input>
             </td>
@@ -426,19 +599,19 @@ html {
         <fieldset style="border:1;">
           <legend>Výstup termostatu</legend>
           <div style="margin:auto">
-              <input type="radio" id="rbtT1" name="prepTstat" onclick="OutputSelect(this)" value="all" >
-              <label for="rbtT1">relé 1</label>
-              <input type="radio" id="rbtT2" name="prepTstat" onclick="OutputSelect(this)"  value="false">
-              <label for="rbtT2">relé 2</label>
-              <input type="radio" id="rbtT3" name="prepTstat" onclick="OutputSelect(this)"  value="true">
-              <label for="rbtT3">out 1</label>
-              <input type="radio" id="rbtT4" name="prepTstat" onclick="OutputSelect(this)"  value="true">
-              <label for="rbtT4">out 2</label>
+            <input type="radio" id="rbtT1" name="prepTstat" onclick="OutputSelect(this)" value="all">
+            <label for="rbtT1">relé 1</label>
+            <input type="radio" id="rbtT2" name="prepTstat" onclick="OutputSelect(this)" value="false">
+            <label for="rbtT2">relé 2</label>
+            <input type="radio" id="rbtT3" name="prepTstat" onclick="OutputSelect(this)" value="true">
+            <label for="rbtT3">out 1</label>
+            <input type="radio" id="rbtT4" name="prepTstat" onclick="OutputSelect(this)" value="true">
+            <label for="rbtT4">out 2</label>
           </div>
         </fieldset>
       </form>
       <div>
-        <button type="submit" onclick="SaveData()" style="margin-top:50px">ULOŽIT</button>
+        <button type="submit" onclick="SaveData()" >ULOŽIT</button>
       </div>
     </div>
     <div id="spinacky" class="tabcontent">
@@ -446,6 +619,7 @@ html {
         <thead>
           <tr>
             <th style="text-align:center">on</th>
+            <th class="spc"></th>
             <th style="text-align:center">off</th>
           </tr>
 
@@ -455,6 +629,7 @@ html {
             <td>
               <input id="sp1on" class="setTime" type="time"></input>
             </td>
+            <td class="spc"></td>
             <td>
               <input id="sp1off" class="setTime" type="time"></input>
             </td>
@@ -463,6 +638,7 @@ html {
             <td>
               <input id="sp2on" class="setTime" type="time"></input>
             </td>
+            <td class="spc"></td>
             <td>
               <input id="sp2off" class="setTime" type="time"></input>
             </td>
@@ -471,6 +647,7 @@ html {
             <td>
               <input id="sp3on" class="setTime" type="time"></input>
             </td>
+            <td class="spc"></td>
             <td>
               <input id="sp3off" class="setTime" type="time"></input>
             </td>
@@ -479,6 +656,7 @@ html {
             <td>
               <input id="sp4on" class="setTime" type="time"></input>
             </td>
+            <td class="spc"></td>
             <td>
               <input id="sp4off" class="setTime" type="time"></input>
             </td>
@@ -489,23 +667,22 @@ html {
         <fieldset style="border:1;">
           <legend>Výstup spínacích hodin</legend>
           <div style="margin:auto">
-              <input type="radio" id="rbtS1" name="radios" value="all">
-              <label for="rbtS1">relé 1</label>
-              <input type="radio" id="rbtS2" name="radios" value="false">
-              <label for="rbtS2">relé 2</label>
-              <input type="radio" id="rbtS3" name="radios" value="true">
-              <label for="rbtS3">out 1</label>
-              <input type="radio" id="rbtS4" name="radios" value="true">
-              <label for="rbtS4">out 2</label>
+            <input type="radio" id="rbtS1" name="prepSpin" value="all">
+            <label for="rbtS1">relé 1</label>
+            <input type="radio" id="rbtS2" name="prepSpin" value="false">
+            <label for="rbtS2">relé 2</label>
+            <input type="radio" id="rbtS3" name="prepSpin" value="true">
+            <label for="rbtS3">out 1</label>
+            <input type="radio" id="rbtS4" name="prepSpin" value="true">
+            <label for="rbtS4">out 2</label>
           </div>
         </fieldset>
       </form>
       <div>
-        <button type="submit" onclick="SaveData()" style="margin-top:50px">ULOŽIT</button>
+        <button type="submit" onclick="SaveData()" >ULOŽIT</button>
       </div>
     </div>
   </div>
-
 
 </body>
 

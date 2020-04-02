@@ -1,0 +1,10 @@
+
+ovladani vystupu:
+#C*<vystup/stav>   //1on,1off,2on,2off,3on,3off,4on,4off
+
+uloz data
+termostat:
+#T*<t1>_<cas1>*<t2>_<cas2>*<t3>_<cas3>*<t4>_<cas4>
+
+spinacky:
+#S*<t1on>_<t1off>*<t2on>_<t2off>*<t3on>_<t3off>*<t4on>_<t4off>
