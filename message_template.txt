@@ -4,7 +4,10 @@ ovladani vystupu:
 
 uloz data
 termostat:
-#T*<t1>_<cas1>*<t2>_<cas2>*<t3>_<cas3>*<t4>_<cas4>
+&#T*<t1>_<cas1>*<t2>_<cas2>*<t3>_<cas3>*<t4>_<cas4>
 
 spinacky:
 #S*<t1on>_<t1off>*<t2on>_<t2off>*<t3on>_<t3off>*<t4on>_<t4off>
+
+vystupy pro termostat a spinacky:
+#O*<termostatOut>*<spinackyOut>* 

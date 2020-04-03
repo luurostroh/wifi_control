@@ -46,7 +46,7 @@
       text-align: center;
     }
 
- 
+
 
     .btn {
       width: 105px;
@@ -66,29 +66,32 @@
 
     }
 
-.space{
-  height: 150px;
-}
-    .mainTable{
+    .space {
+      height: 150px;
+    }
+
+    .mainTable {
       margin: auto;
     }
   }
 
-  button[type=submit]{
-      margin-top: 150px;
-      font-size: 30px;
-    }
+  button[type=submit] {
+    margin-top: 150px;
+    font-size: 30px;
+  }
 
-    input[type=radio]+label{
-      font-size: 35px;
-    }
+  input[type=radio]+label {
+    font-size: 35px;
+  }
 
-    input[type=number]{
-      width: 140px;
-    }
-    #tempLabel{
-      font-size: 53px;
-    }
+  input[type=number] {
+    width: 140px;
+  }
+
+  #tempLabel {
+    font-size: 53px;
+  }
+
   /* 
   ##Device = Laptops, Desktops
   ##Screen = B/w 1025px to 1280px
@@ -106,7 +109,7 @@
 
     }
 
-    .mainTable{
+    .mainTable {
       margin: auto;
     }
 
@@ -145,10 +148,13 @@
       font-size: 36px;
     }
 
-    button[type=submit]{
+    button[type=submit] {
       margin-top: 150px;
       font-size: 30px;
     }
+    #tempLabel {
+    font-size: 43px;
+  }
   }
 
   /* 
@@ -163,6 +169,7 @@
     html {
       text-align: center;
     }
+
     .btn {
       width: 120px;
       height: 100px;
@@ -210,9 +217,10 @@
 
     }
 
-.mainTable{
-  margin: auto;
-}
+    .mainTable {
+      margin: auto;
+    }
+
     .space {
       height: 150px;
     }
@@ -239,16 +247,17 @@
       font-size: 60px;
     }
 
-    button[type=submit]{
+    button[type=submit] {
       margin-top: 150px;
       font-size: 30px;
     }
+
     .setTemp {
       width: 140px;
       text-align: center;
     }
 
-    .spc{
+    .spc {
       width: 20px;
     }
   }
@@ -283,7 +292,7 @@
       font-size: 30px;
     }
 
-    button[type=submit]{
+    button[type=submit] {
       margin-top: 30px;
       font-size: 25px;
     }
@@ -387,21 +396,57 @@
   function init() {
     Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
     Socket.onmessage = function (event) {
-      var i1 = document.getElementById("in1");
-      var i2 = document.getElementById("in2");
-      var i3 = document.getElementById("in3");
-      var i4 = document.getElementById("in4");
-      var data = event.data;
-      document.getElementById("rxConsole").value += event.data;
+      SortData(event.data);
+    }
+    document.getElementById("defaultOpen").click();
+  }
+
+
+  function SortData(msg) {
+    //rozsekat zpravu
+
+    var recInp = msg.substring(msg.findIndex('I') + 2, msg.findIndex('O'));
+    var recOutp = msg.substring(msg.findIndex('O') + 2, msg.findIndex('t'));
+    var recTstat = msg.substring(msg.findIndex('T') + 2, msg.findIndex('S'));
+    var recSpin = msg.substring(msg.findIndex('S') + 2, msg.findIndex('E'));
+    //vstupy
+    document.getElementById("in1").style.backgroundColor = recInp[0] == '1' ? "#ffc107" : "gray";
+    document.getElementById("in2").style.backgroundColor = recInp[1] == '1' ? "#ffc107" : "gray";
+    document.getElementById("in3").style.backgroundColor = recInp[2] == '1' ? "#ffc107" : "gray";
+    document.getElementById("in4").style.backgroundColor = recInp[3] == '1' ? "#ffc107" : "gray";
+    //vystupy
+    document.getElementById("out1").style.backgroundColor = recOutp[0] == '1' ? "#ffc107" : "gray";
+    document.getElementById("out2").style.backgroundColor = recOutp[1] == '1' ? "#ffc107" : "gray";
+    document.getElementById("out3").style.backgroundColor = recOutp[2] == '1' ? "#ffc107" : "gray";
+    document.getElementById("out4").style.backgroundColor = recOutp[3] == '1' ? "#ffc107" : "gray";
+
+    //teplota 
+    document.getElementById("tempLabel").value = msg.substring(msg.indexOf('t') + 1, msg.indexOf('T'));
+
+    //termostat
+    var teploty = document.getElementsByClassName("setTemp");
+    var casy = document.getElementsByClassName("setTime");
+    for (i = 0; i < teploty.length; i++) {
+      teploty[i].value = recTstat.substr(recTstat.indexOf('*') + 1, recTstat.indexOfx('_'));
+      casy[i].value = FromMinutes(recTstat.substr(recTstat.indexOf('_') + 1, recTstat.lastIndexOf('')));
+    }
+
+    //spinacky
+    var casyOn = document.getElementsByClassName("setTimeSpinOn");
+    var casyOff = document.getElementsByClassName("setTimeSpinOff");
+    for (i = 0; i < casyOn.length; i++) {
+      casyOn[i].value = FromMinutes(recSpin.substr(recSpin.indexOf('_') + 1, recSpin.lastIndexOf('')));
+      casyOff[i].value = FromMinutes(recSpin.substr(recSpin.indexOf('_') + 1, recSpin.lastIndexOf('')));
     }
   }
 
   function SaveData() {
     var descripts = ["relé 1", "relé 2", "out 1", "out 2"];
-
+    var message = "&#T*";//zprava k odeslani
     var radioTstat = document.getElementsByName("prepTstat");
     var radioSpin = document.getElementsByName("prepSpin");
     var labels = document.getElementsByClassName("label");
+    //nastaveni kontrolek
     for (i = 0; i < radioTstat.length; i++) {
       if (radioTstat[i].checked == true) {
         labels[i].innerText = "termostat";
@@ -428,27 +473,70 @@
         if (labels[i].innerText != "termostat") labels[i].innerText = "";
       }
     }
+
+    //odeslani zpravy
+    //termostat: teplota format 253(25,3) cas v minutach
+
+    var teploty = document.getElementsByClassName("setTemp");
+    var casy = document.getElementsByClassName("setTime");
+    for (i = 0; i < teploty.length; i++) {
+      var num = teploty[i].valueAsNumber * 10;
+      message += num.toString() + '_';
+      message += ToMinutes(casy[i].value) + "*";
+    }
+    var spinaciCasyOn = document.getElementsByClassName("setTimeSpinOn");
+    var spinaciCasyOff = document.getElementsByClassName("setTimeSpinOff");
+    message += "#S*"
+    for (i = 0; i < spinaciCasyOn.length; i++) {
+
+      message += ToMinutes(spinaciCasyOn[i].value) + "_";
+      message += ToMinutes(spinaciCasyOff[i].value) + "*";
+    }
+    const outindex = Array.from(document.getElementsByName("prepTstat"));
+    const idx = outindex.findIndex(x => x.checked == true);
+    message += "#O*" + idx.toString();
+    const outindex1 = Array.from(document.getElementsByName("prepSpin"));
+    const idx1 = outindex1.findIndex(x => x.checked == true);
+    message += "*" + idx1.toString() + "*";
+
+    Socket.send(message);
+  }
+
+  //funkce pro prevod casu na minuty
+  function ToMinutes(cas) {
+    var pom = parseInt(cas.substr(0, 2));
+    var pom2 = parseInt(cas.substr(3, 2));
+    return (pom * 60 + pom2).toString();
+  }
+
+  //funkce pro prevod minut na HH:MM
+  function FromMinutes(cas) {
+    var pom = parseInt(cas);
+    var pom1 = pom / 60;
+    var pom2 = pom % 60;
+
+    return pom1.toString() + ':' + pom2.toString();
   }
 
   function btn1click() {
-    var btn = document.getElementById("r1");
+    var btn = document.getElementById("out1");
     if (btn.style.backgroundColor == "gray") btn.style.backgroundColor = "green";
     else btn.style.backgroundColor = "gray";
     // else led.style.color = "red";
   }
   function btn2click() {
-    var btn = document.getElementById("r2");
+    var btn = document.getElementById("out2");
     if (btn.style.backgroundColor == "gray") btn.style.backgroundColor = "green";
     else btn.style.backgroundColor = "gray";
   }
   function btn3click() {
-    var btn = document.getElementById("r3");
+    var btn = document.getElementById("out3");
     if (btn.style.backgroundColor == "gray") btn.style.backgroundColor = "green";
     else btn.style.backgroundColor = "gray";
     // else led.style.color = "red";
   }
   function btn4click() {
-    var btn = document.getElementById("r4");
+    var btn = document.getElementById("out4");
     if (btn.style.backgroundColor == "gray") btn.style.backgroundColor = "green";
     else btn.style.backgroundColor = "gray";
   }
@@ -487,10 +575,10 @@
     elmnt.style.backgroundColor = color;
   }
 
-  document.getElementById("defaultOpen").click();
+
 </script>
 
-<body onload="javascript:init()">
+<body onload="init()">
 
   <div class="main">
     <button class="tablink" id="defaultOpen" onclick="openPage('prehled', this, 'blue')">Přehled</button>
@@ -498,54 +586,55 @@
     <button class="tablink" onclick="openPage('spinacky', this, 'goldenrod')">Spínačky</button>
     <div id=prehled class="tabcontent">
       <div>
-      <div class="space"></div>
-      <table class="mainTable"  >
-        <tbody>
-          <tr>
-            <td>
-              <button type="button" class="btn btn-secondary btn-lg" onclick="btn1click()" id="r1">RELE 1</button>
-            </td>           
-            <td>
-              <button type="button" class="btn btn-secondary btn-lg" onclick="btn2click()" id="r2">RELE 2</button>
-            </td>
-            <td>
-              <button type="button" class="btn btn-secondary btn-lg" onclick="btn3click()" id="r3">OUT 1</button>
-            </td>
-            <td>
-              <button type="button" class="btn btn-secondary btn-lg" onclick="btn4click()" id="r4">OUT 2</button>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <p id="sel1" class="label"></p>
-            </td>
-            <td>
-              <p id="sel2" class="label"></p>
-            </td>
-            <td>
-              <p id="sel3" class="label"></p>
-            </td>
-            <td>
-              <p id="sel4" class="label"></p>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="space">
-        <div style="margin-top:75px;">
-          <span id="tempLabel" style="width:50px;height:30px;font-size:24px;margin-top:20px; ">Teplota </span>
-          <span id="tempLabel" style="width:50px;height:30px;font-size:24px;margin-top:20px;color:black">23</span>
-          <span id="tempLabel" style="width:50px;height:30px;font-size:24px;margin-top:20px;color:black"> °C</span>
+        <div class="space"></div>
+        <table class="mainTable">
+          <tbody>
+            <tr>
+              <td>
+                <button type="button" class="btn btn-secondary btn-lg" onclick="btn1click()" id="out1">RELE 1</button>
+              </td>
+              <td>
+                <button type="button" class="btn btn-secondary btn-lg" onclick="btn2click()" id="out2">RELE 2</button>
+              </td>
+              <td>
+                <button type="button" class="btn btn-secondary btn-lg" onclick="btn3click()" id="out3">OUT 1</button>
+              </td>
+              <td>
+                <button type="button" class="btn btn-secondary btn-lg" onclick="btn4click()" id="out4">OUT 2</button>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <p id="sel1" class="label"></p>
+              </td>
+              <td>
+                <p id="sel2" class="label"></p>
+              </td>
+              <td>
+                <p id="sel3" class="label"></p>
+              </td>
+              <td>
+                <p id="sel4" class="label"></p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="space">
+          <div style="margin-top:75px;">
+            <span id="tempLabel" style="width:50px;height:30px;margin-top:20px; ">Teplota </span>
+            <span id="tempLabel" style="width:50px;height:30px;margin-top:20px;"">23</span>
+            <span id="tempLabel" style="width:50px;height:30px;margin-top:20px;""> °C</span>
+          </div>
+        </div>
+        <div style="margin: auto;">
+          <button type="button" class="btn btn-warning btn-lg" id="in1">IN 1</button>
+          <button type="button" class="btn btn-warning btn-lg" id="in2">IN 2</button>
+          <button type="button" class="btn btn-warning btn-lg" id="in3">IN 3</button>
+          <button type="button" class="btn btn-warning btn-lg" id="in4">IN 4</button>
         </div>
       </div>
-      <div style="margin: auto;">
-        <button type="button" class="btn btn-warning btn-lg" id="in1">IN 1</button>
-        <button type="button" class="btn btn-warning btn-lg" id="in2">IN 2</button>
-        <button type="button" class="btn btn-warning btn-lg" id="in3">IN 3</button>
-        <button type="button" class="btn btn-warning btn-lg" id="in4">IN 4</button>
-      </div>
-      </div>
-    </div><!--end-->
+    </div>
+    <!--end-->
     <div id="termostat" class="tabcontent" style="margin:auto">
       <table style="margin:auto;">
         <thead>
@@ -611,7 +700,7 @@
         </fieldset>
       </form>
       <div>
-        <button type="submit" onclick="SaveData()" >ULOŽIT</button>
+        <button type="submit" onclick="SaveData()">ULOŽIT</button>
       </div>
     </div>
     <div id="spinacky" class="tabcontent">
@@ -627,38 +716,38 @@
         <tbody>
           <tr>
             <td>
-              <input id="sp1on" class="setTime" type="time"></input>
+              <input id="sp1on" class="setTimeSpinOn" type="time"></input>
             </td>
             <td class="spc"></td>
             <td>
-              <input id="sp1off" class="setTime" type="time"></input>
+              <input id="sp1off" class="setTimeSpinOff" type="time"></input>
             </td>
           </tr>
           <tr>
             <td>
-              <input id="sp2on" class="setTime" type="time"></input>
+              <input id="sp2on" class="setTimeSpinOn" type="time"></input>
             </td>
             <td class="spc"></td>
             <td>
-              <input id="sp2off" class="setTime" type="time"></input>
+              <input id="sp2off" class="setTimeSpinOff" type="time"></input>
             </td>
           </tr>
           <tr>
             <td>
-              <input id="sp3on" class="setTime" type="time"></input>
+              <input id="sp3on" class="setTimeSpinOn" type="time"></input>
             </td>
             <td class="spc"></td>
             <td>
-              <input id="sp3off" class="setTime" type="time"></input>
+              <input id="sp3off" class="setTimeSpinOff" type="time"></input>
             </td>
           </tr>
           <tr>
             <td>
-              <input id="sp4on" class="setTime" type="time"></input>
+              <input id="sp4on" class="setTimeSpinOn" type="time"></input>
             </td>
             <td class="spc"></td>
             <td>
-              <input id="sp4off" class="setTime" type="time"></input>
+              <input id="sp4off" class="setTimeSpinOff" type="time"></input>
             </td>
           </tr>
         </tbody>
@@ -679,7 +768,7 @@
         </fieldset>
       </form>
       <div>
-        <button type="submit" onclick="SaveData()" >ULOŽIT</button>
+        <button type="submit" onclick="SaveData()">ULOŽIT</button>
       </div>
     </div>
   </div>
