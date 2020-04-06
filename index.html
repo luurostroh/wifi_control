@@ -394,10 +394,10 @@
   var Socket;
   var termostatLabel, spinackyLabel;
   function init() {
-    Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
-    Socket.onmessage = function (event) {
-      SortData(event.data);
-    }
+   // Socket = new WebSocket('ws://localhost:8080');
+    //Socket.onmessage = function (event) {
+   //   SortData(event.data);
+   // }
     document.getElementById("defaultOpen").click();
   }
 
@@ -446,33 +446,7 @@
     var radioTstat = document.getElementsByName("prepTstat");
     var radioSpin = document.getElementsByName("prepSpin");
     var labels = document.getElementsByClassName("label");
-    //nastaveni kontrolek
-    for (i = 0; i < radioTstat.length; i++) {
-      if (radioTstat[i].checked == true) {
-        labels[i].innerText = "termostat";
-        radioSpin[i].disabled = true;
-        radioSpin[i].labels[0].innerText = "";
 
-      }
-      else {
-        radioSpin[i].disabled = false;
-        radioSpin[i].labels[0].innerText = descripts[i];
-        if (labels[i].innerText != "spinacky") labels[i].innerText = "";
-      }
-
-    }
-    for (i = 0; i < radioSpin.length; i++) {
-      if (radioSpin[i].checked == true) {
-        labels[i].innerText = "spínačky";
-        radioTstat[i].disabled = true;
-        radioTstat[i].labels[0].innerText = "";
-      }
-      else {
-        radioTstat[i].disabled = false;
-        radioTstat[i].labels[0].innerText = descripts[i];
-        if (labels[i].innerText != "termostat") labels[i].innerText = "";
-      }
-    }
 
     //odeslani zpravy
     //termostat: teplota format 253(25,3) cas v minutach
@@ -499,7 +473,7 @@
     const idx1 = outindex1.findIndex(x => x.checked == true);
     message += "*" + idx1.toString() + "*";
 
-    Socket.send(message);
+  //  Socket.send(message);
   }
 
   //funkce pro prevod casu na minuty
@@ -550,7 +524,37 @@
     if (selectedOut.name == "prepTtsat") termostatLabel = selectedOut;
     if (selectedOut.name == "prepSpin") spinackyLabel = selectedOut;
 
+    //nastaveni kontrolek
+    var radioTstat = document.getElementsByName("prepTstat");
+    var radioSpin = document.getElementsByName("prepSpin");
+    var labels = document.getElementsByClassName("label");
+    var descripts = ["relé 1", "relé 2", "out 1", "out 2"];
+    for (i = 0; i < radioTstat.length; i++) {
+      if (radioTstat[i].checked == true) {
+        labels[i].innerText = "termostat";
+        radioSpin[i].disabled = true;
+        radioSpin[i].labels[0].innerText = "";
 
+      }
+      else {
+        radioSpin[i].disabled = false;
+        radioSpin[i].labels[0].innerText = descripts[i];
+        if (labels[i].innerText != "spinacky") labels[i].innerText = "";
+      }
+
+    }
+    for (i = 0; i < radioSpin.length; i++) {
+      if (radioSpin[i].checked == true) {
+        labels[i].innerText = "spínačky";
+        radioTstat[i].disabled = true;
+        radioTstat[i].labels[0].innerText = "";
+      }
+      else {
+        radioTstat[i].disabled = false;
+        radioTstat[i].labels[0].innerText = descripts[i];
+        if (labels[i].innerText != "termostat") labels[i].innerText = "";
+      }
+    }
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -756,13 +760,13 @@
         <fieldset style="border:1;">
           <legend>Výstup spínacích hodin</legend>
           <div style="margin:auto">
-            <input type="radio" id="rbtS1" name="prepSpin" value="all">
+            <input type="radio" id="rbtS1" name="prepSpin" value="all" onclick="OutputSelect(this)" >
             <label for="rbtS1">relé 1</label>
-            <input type="radio" id="rbtS2" name="prepSpin" value="false">
+            <input type="radio" id="rbtS2" name="prepSpin" value="false" onclick="OutputSelect(this)" >
             <label for="rbtS2">relé 2</label>
-            <input type="radio" id="rbtS3" name="prepSpin" value="true">
+            <input type="radio" id="rbtS3" name="prepSpin" value="true" onclick="OutputSelect(this)" >
             <label for="rbtS3">out 1</label>
-            <input type="radio" id="rbtS4" name="prepSpin" value="true">
+            <input type="radio" id="rbtS4" name="prepSpin" value="true" onclick="OutputSelect(this)" >
             <label for="rbtS4">out 2</label>
           </div>
         </fieldset>
