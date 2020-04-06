@@ -1,4 +1,6 @@
 
+page to device
+
 ovladani vystupu:
 #C*<vystup/stav>   //1on,1off,2on,2off,3on,3off,4on,4off
 
@@ -11,3 +13,10 @@ spinacky:
 
 vystupy pro termostat a spinacky:
 #O*<termostatOut>*<spinackyOut>* 
+
+
+device to page
+
+#I%<in1><in2><in3><in4>O%<out1><out2><out3><out4>t%<teplota> //vstupy vystupy teplota
+T%*<t1>_<cas1>*<t2>_<cas2>*<t3>_<cas3>*<t4>_<cas4> //termostat
+S*%<t1on>_<t1off>*<t2on>_<t2off>*<t3on>_<t3off>*<t4on>_<t4off>*E//spinacky
