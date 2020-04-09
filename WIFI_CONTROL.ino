@@ -1,6 +1,7 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266WiFi.h>
 #include <WebSocketsServer.h>
+#include "web_page.h"
 // test 3
 ESP8266WebServer server;
 WebSocketsServer webSocket = WebSocketsServer(81);
@@ -10,21 +11,28 @@ typedef struct {
 } TermostatStruct;
 
 TermostatStruct termostatTable[4];
+uint8_t termostatOut;
 typedef struct {
   uint16_t casOn;
   uint16_t casOff;
 } SpinackyStruct;
 
 SpinackyStruct spinackyTable[4];
+uint8_t spinackyOut;
+
+uint16_t minutes;
 uint8_t pin_led = 2;
 char *ssid = "wifinet";
 char *password = "hesloludek";
-#include "web_page.h"
+//#include "web_page.h"
+
+//////////////////////////////////////////////
 void setup() {
   pinMode(pin_led, OUTPUT);
-  WiFi.begin(ssid, password);
+  WiFi.begin(ssid,password);
   Serial.begin(115200);
-  while (WiFi.status() != WL_CONNECTED) {
+  while(WiFi.status()!=WL_CONNECTED)
+  {
     Serial.print(".");
     delay(500);
   }
@@ -32,20 +40,37 @@ void setup() {
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
 
-  server.on("/", []() { server.send_P(200, "text/html", webpage); });
+  server.on("/",[](){
+    server.send_P(200, "text/html", webpage);  
+  });
   server.begin();
   webSocket.begin();
   webSocket.onEvent(webSocketEvent);
 }
 
 // Add the main program code into the continuous loop() function
-void loop() {}
+void loop() 
+{  
+  webSocket.loop();
+  server.handleClient();
+}
 
+ void ReadTemp()
+ {
+   
+ }
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
                     size_t length) {
   if (type == WStype_TEXT) {
+    Serial.println("ok");
+    // for (size_t i = 0; i < length; i++)
+    // {
+    //   Serial.print(payload[i]);
+    // }
+
     if (payload[0] == '#') {
       String data = String(*payload);
+      Serial.println(data);
       uint8_t delimiters[10];
       uint8_t index = 0;
       for (int i = 0; i < length; i++) {
@@ -102,4 +127,30 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
       Serial.println();
     }
   }
+}
+
+void Spinacky()
+{
+  for (uint8_t i = 0; i < 4; i++)
+  {
+    if(spinackyTable[i].casOn >= minutes && !digitalRead(spinackyOut))
+    {
+      digitalWrite(spinackyOut,HIGH);
+    }
+    else if(spinackyTable[i].casOff >= minutes && digitalRead(spinackyOut))
+    {
+      digitalWrite(spinackyOut,LOW);
+    }
+  }
+  
+}
+
+void PushToEeprom()
+{
+
+}
+
+void PullFromEeprom()
+{
+  
 }

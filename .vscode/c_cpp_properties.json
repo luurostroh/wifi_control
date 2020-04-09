@@ -5,6 +5,7 @@
             "includePath": [
                 "C:\\Users\\oem\\AppData\\Local\\Arduino15\\packages\\esp8266\\tools\\**",
                 "C:\\Users\\oem\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.5.2\\**",
+                "c:\\Users\\oem\\Documents\\Arduino\\libraries\\**",
                 "${workspaceFolder}/**"
             ],
             "defines": [
