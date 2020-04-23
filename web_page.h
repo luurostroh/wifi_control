@@ -490,25 +490,48 @@ char webpage[] PROGMEM = R"=====(
 
   function btn1click() {
     var btn = document.getElementById("out1");
-    if (btn.style.backgroundColor == "gray") btn.style.backgroundColor = "green";
-    else btn.style.backgroundColor = "gray";
+    if (btn.style.backgroundColor == "gray"){
+      btn.style.backgroundColor = "green";
+      Socket.send("#C*1on");
+    } 
+    else {
+      btn.style.backgroundColor = "gray";
+      Socket.send("#C*1of");
+    }
     // else led.style.color = "red";
   }
   function btn2click() {
     var btn = document.getElementById("out2");
-    if (btn.style.backgroundColor == "gray") btn.style.backgroundColor = "green";
-    else btn.style.backgroundColor = "gray";
+    if (btn.style.backgroundColor == "gray"){
+      btn.style.backgroundColor = "green";
+      Socket.send("#C*2on");
+    } 
+    else {
+      btn.style.backgroundColor = "gray";
+      Socket.send("#C*2of");
+    };
   }
   function btn3click() {
     var btn = document.getElementById("out3");
-    if (btn.style.backgroundColor == "gray") btn.style.backgroundColor = "green";
-    else btn.style.backgroundColor = "gray";
-    // else led.style.color = "red";
+    if (btn.style.backgroundColor == "gray"){
+      btn.style.backgroundColor = "green";
+      Socket.send("#C*3on");
+    } 
+    else {
+      btn.style.backgroundColor = "gray";
+      Socket.send("#C*3of");
+    }
   }
   function btn4click() {
     var btn = document.getElementById("out4");
-    if (btn.style.backgroundColor == "gray") btn.style.backgroundColor = "green";
-    else btn.style.backgroundColor = "gray";
+    if (btn.style.backgroundColor == "gray"){
+      btn.style.backgroundColor = "green";
+      Socket.send("#C*4on");
+    } 
+    else {
+      btn.style.backgroundColor = "gray";
+      Socket.send("#C*4of");
+    }
   }
 
   function OutputSelect(selectedOut) {
