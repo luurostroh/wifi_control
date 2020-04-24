@@ -129,9 +129,14 @@
       margin-top: 150px;
       font-size: 30px;
     }
+
     #tempLabel {
-    font-size: 43px;
-  }
+      font-size: 43px;
+    }
+
+    .tmrLabel {
+      font-size: 50px;
+    }
   }
 
   /* 
@@ -240,8 +245,13 @@
     .spc {
       width: 20px;
     }
+
     p {
       font-size: 25px;
+    }
+
+    .tmrLabel {
+      font-size: 50px;
     }
   }
 
@@ -257,6 +267,10 @@
       height: 100%;
       margin: 0;
       text-align: center;
+    }
+
+    .tmrLabel {
+      font-size: 50px;
     }
 
     .btn {
@@ -326,9 +340,11 @@
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
     background-color: lightgreen;
   }
- .btn-secondary{
-   background:yellowgreen ;
- }
+
+  .btn-secondary {
+    background: yellowgreen;
+  }
+
   /* Style tab links */
 
   .tablink {
@@ -340,7 +356,7 @@
     cursor: pointer;
     padding: 14px 16px;
     /*font-size: 17px;*/
-    width: 33.33%;
+    width: 25%;
   }
 
   .tablink:hover {
@@ -355,6 +371,7 @@
     padding: 100px 20px;
     height: 100%;
   }
+
 
   /*.p{
   text-align: center;
@@ -372,16 +389,20 @@
     background-color: #e6be5a;
   }
 
+  #nastaveni {
+    background-color: #f6534ef6;
+  }
+
   /*-----------------------------------------*/
 </style>
 
 <script>
   var Socket;
-  var termostatLabel, spinackyLabel;
+  var termostatLabel, spinackyLabel, setIOlabel;
   function init() {
     Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
     Socket.onmessage = function (event) {
-     SortData(event.data);
+      SortData(event.data);
     }
     document.getElementById("defaultOpen").click();
   }
@@ -423,6 +444,9 @@
       casyOn[i].value = FromMinutes(recSpin.substr(recSpin.indexOf('_') + 1, recSpin.lastIndexOf('')));
       casyOff[i].value = FromMinutes(recSpin.substr(recSpin.indexOf('_') + 1, recSpin.lastIndexOf('')));
     }
+
+    //nastaveni IO
+
   }
 
   function SaveData() {
@@ -458,7 +482,7 @@
     const idx1 = outindex1.findIndex(x => x.checked == true);
     message += "*" + idx1.toString() + "*";
 
-  //  Socket.send(message);
+    //  Socket.send(message);
   }
 
   //funkce pro prevod casu na minuty
@@ -479,10 +503,10 @@
 
   function btn1click() {
     var btn = document.getElementById("out1");
-    if (btn.style.backgroundColor == "gray"){
+    if (btn.style.backgroundColor == "gray") {
       btn.style.backgroundColor = "green";
       Socket.send("#C*1on");
-    } 
+    }
     else {
       btn.style.backgroundColor = "gray";
       Socket.send("#C*1of");
@@ -491,10 +515,10 @@
   }
   function btn2click() {
     var btn = document.getElementById("out2");
-    if (btn.style.backgroundColor == "gray"){
+    if (btn.style.backgroundColor == "gray") {
       btn.style.backgroundColor = "green";
       Socket.send("#C*2on");
-    } 
+    }
     else {
       btn.style.backgroundColor = "gray";
       Socket.send("#C*2of");
@@ -502,10 +526,10 @@
   }
   function btn3click() {
     var btn = document.getElementById("out3");
-    if (btn.style.backgroundColor == "gray"){
+    if (btn.style.backgroundColor == "gray") {
       btn.style.backgroundColor = "green";
       Socket.send("#C*3on");
-    } 
+    }
     else {
       btn.style.backgroundColor = "gray";
       Socket.send("#C*3of");
@@ -513,10 +537,10 @@
   }
   function btn4click() {
     var btn = document.getElementById("out4");
-    if (btn.style.backgroundColor == "gray"){
+    if (btn.style.backgroundColor == "gray") {
       btn.style.backgroundColor = "green";
       Socket.send("#C*4on");
-    } 
+    }
     else {
       btn.style.backgroundColor = "gray";
       Socket.send("#C*4of");
@@ -529,40 +553,279 @@
     document.getElementById("sel3").innerText = "";
     document.getElementById("sel4").innerText = "";
 
-    if (selectedOut.name == "prepTtsat") termostatLabel = selectedOut;
+
     if (selectedOut.name == "prepSpin") spinackyLabel = selectedOut;
 
     //nastaveni kontrolek
     var radioTstat = document.getElementsByName("prepTstat");
     var radioSpin = document.getElementsByName("prepSpin");
+    var radioInp1 = document.getElementsByName("prepInp1");
+    var radioInp2 = document.getElementsByName("prepInp2");
+    var radioInp3 = document.getElementsByName("prepInp3");
+    var radioInp4 = document.getElementsByName("prepInp4");
     var labels = document.getElementsByClassName("label");
     var descripts = ["relé 1", "relé 2", "out 1", "out 2"];
-    for (i = 0; i < radioTstat.length; i++) {
-      if (radioTstat[i].checked == true) {
-        labels[i].innerText = "termostat";
-        radioSpin[i].disabled = true;
-        radioSpin[i].labels[0].innerText = "";
 
-      }
-      else {
-        radioSpin[i].disabled = false;
-        radioSpin[i].labels[0].innerText = descripts[i];
-        if (labels[i].innerText != "spinacky") labels[i].innerText = "";
+    //karta termostat
+    if (selectedOut.name == "prepTtsat") {
+      termostatLabel = selectedOut;
+      for (i = 0; i < radioTstat.length; i++) {
+        if (radioTstat[i].checked == true) {
+          labels[i].innerText = "termostat";
+          radioSpin[i].disabled = true;
+          radioSpin[i].labels[0].innerText = "";
+          radioInp1[i].disabled = true;
+          radioInp1[i].labels[0].innerText = "";
+          radioInp2[i].disabled = true;
+          radioInp2[i].labels[0].innerText = "";
+          radioInp3[i].disabled = true;
+          radioInp3[i].labels[0].innerText = "";
+          radioInp4[i].disabled = true;
+          radioInp4[i].labels[0].innerText = "";
+
+
+        }
+        else {
+          radioSpin[i].disabled = false;
+          radioSpin[i].labels[0].innerText = descripts[i];
+          if (labels[i].innerText == "") {
+            radioInp1[i].disabled = false;
+            radioInp1[i].labels[0].innerText = descripts[i];
+            radioInp2[i].disabled = false;
+            radioInp2[i].labels[0].innerText = descripts[i];
+            radioInp3[i].disabled = false;
+            radioInp3[i].labels[0].innerText = descripts[i];
+            radioInp4[i].disabled = false;
+            radioInp4[i].labels[0].innerText = descripts[i];
+          }
+          if (labels[i].innerText != "spinacky") labels[i].innerText = "";
+        }
+
       }
 
     }
-    for (i = 0; i < radioSpin.length; i++) {
-      if (radioSpin[i].checked == true) {
-        labels[i].innerText = "spínačky";
-        radioTstat[i].disabled = true;
-        radioTstat[i].labels[0].innerText = "";
+
+    // karta spinacky
+    if (selectedOut.name == "prepSpin") {
+      for (i = 0; i < radioSpin.length; i++) {
+        if (radioSpin[i].checked == true) {
+          labels[i].innerText = "spínačky";
+          radioTstat[i].disabled = true;
+          radioTstat[i].labels[0].innerText = "";
+          radioInp1[i].disabled = true;
+          radioInp1[i].labels[0].innerText = "";
+          radioInp2[i].disabled = true;
+          radioInp2[i].labels[0].innerText = "";
+          radioInp3[i].disabled = true;
+          radioInp3[i].labels[0].innerText = "";
+          radioInp4[i].disabled = true;
+          radioInp4[i].labels[0].innerText = "";
+        }
+        else {
+          radioTstat[i].disabled = false;
+          radioTstat[i].labels[0].innerText = descripts[i];
+          if (labels[i].innerText == "") {
+            radioInp1[i].disabled = false;
+            radioInp1[i].labels[0].innerText = descripts[i];
+            radioInp2[i].disabled = false;
+            radioInp2[i].labels[0].innerText = descripts[i];
+            radioInp3[i].disabled = false;
+            radioInp3[i].labels[0].innerText = descripts[i];
+            radioInp4[i].disabled = false;
+            radioInp4[i].labels[0].innerText = descripts[i];
+          }
+
+          if (labels[i].innerText != "termostat") labels[i].innerText = "";
+        }
       }
-      else {
-        radioTstat[i].disabled = false;
-        radioTstat[i].labels[0].innerText = descripts[i];
-        if (labels[i].innerText != "termostat") labels[i].innerText = "";
-      }
+
     }
+
+    //karta IN 1
+    if (selectedOut.name == "prepInp1") {
+      for (i = 0; i < radioInp1.length; i++) {
+        if (radioInp1[i].checked == true) {
+          labels[i].innerText = "IN 1";
+          radioSpin[i].disabled = true;
+          radioSpin[i].labels[0].innerText = "";
+          radioTstat[i].disabled = true;
+          radioTstat[i].labels[0].innerText = "";
+          radioInp2[i].disabled = true;
+          radioInp2[i].labels[0].innerText = "";
+          radioInp3[i].disabled = true;
+          radioInp3[i].labels[0].innerText = "";
+          radioInp4[i].disabled = true;
+          radioInp4[i].labels[0].innerText = "";
+
+
+        }
+        else {
+          radioSpin[i].disabled = false;
+          radioSpin[i].labels[0].innerText = descripts[i];
+          if (labels[i].innerText == "") {
+            radioSpin[i].disabled = false;
+            radioSpin[i].labels[0].innerText = descripts[i];
+            radioTstat[i].disabled = false;
+            radioTstat[i].labels[0].innerText = descripts[i];
+            radioInp2[i].disabled = false;
+            radioInp2[i].labels[0].innerText = descripts[i];
+            radioInp3[i].disabled = false;
+            radioInp3[i].labels[0].innerText = descripts[i];
+            radioInp4[i].disabled = false;
+            radioInp4[i].labels[0].innerText = descripts[i];
+          }
+          if (labels[i].innerText != "spinacky") labels[i].innerText = "";
+        }
+
+      }
+
+    }
+
+    //karta IN 2
+    if (selectedOut.name == "prepInp2") {
+      for (i = 0; i < radioInp1.length; i++) {
+        if (radioInp1[i].checked == true) {
+          labels[i].innerText = "IN 2";
+          radioSpin[i].disabled = true;
+          radioSpin[i].labels[0].innerText = "";
+          radioTstat[i].disabled = true;
+          radioTstat[i].labels[0].innerText = "";
+          radioInp1[i].disabled = true;
+          radioInp1[i].labels[0].innerText = "";
+          radioInp3[i].disabled = true;
+          radioInp3[i].labels[0].innerText = "";
+          radioInp4[i].disabled = true;
+          radioInp4[i].labels[0].innerText = "";
+
+
+        }
+        else {
+          radioSpin[i].disabled = false;
+          radioSpin[i].labels[0].innerText = descripts[i];
+          if (labels[i].innerText == "") {
+            radioSpin[i].disabled = false;
+            radioSpin[i].labels[0].innerText = descripts[i];
+            radioTstat[i].disabled = false;
+            radioTstat[i].labels[0].innerText = descripts[i];
+            radioInp1[i].disabled = false;
+            radioInp1[i].labels[0].innerText = descripts[i];
+            radioInp3[i].disabled = false;
+            radioInp3[i].labels[0].innerText = descripts[i];
+            radioInp4[i].disabled = false;
+            radioInp4[i].labels[0].innerText = descripts[i];
+          }
+          if (labels[i].innerText != "spinacky") labels[i].innerText = "";
+        }
+
+      }
+
+    }
+
+    //karta IN 3
+    if (selectedOut.name == "prepInp3") {
+      for (i = 0; i < radioInp1.length; i++) {
+        if (radioInp1[i].checked == true) {
+          labels[i].innerText = "IN 3";
+          radioSpin[i].disabled = true;
+          radioSpin[i].labels[0].innerText = "";
+          radioTstat[i].disabled = true;
+          radioTstat[i].labels[0].innerText = "";
+          radioInp1[i].disabled = true;
+          radioInp1[i].labels[0].innerText = "";
+          radioInp2[i].disabled = true;
+          radioInp2[i].labels[0].innerText = "";
+          radioInp4[i].disabled = true;
+          radioInp4[i].labels[0].innerText = "";
+
+
+        }
+        else {
+          radioSpin[i].disabled = false;
+          radioSpin[i].labels[0].innerText = descripts[i];
+          if (labels[i].innerText == "") {
+            radioSpin[i].disabled = false;
+            radioSpin[i].labels[0].innerText = descripts[i];
+            radioTstat[i].disabled = false;
+            radioTstat[i].labels[0].innerText = descripts[i];
+            radioInp1[i].disabled = false;
+            radioInp1[i].labels[0].innerText = descripts[i];
+            radioInp2[i].disabled = false;
+            radioInp2[i].labels[0].innerText = descripts[i];
+            radioInp4[i].disabled = false;
+            radioInp4[i].labels[0].innerText = descripts[i];
+          }
+          if (labels[i].innerText != "spinacky") labels[i].innerText = "";
+        }
+
+      }
+
+    }
+
+    //karta IN 4
+    if (selectedOut.name == "prepInp4") {
+      for (i = 0; i < radioInp1.length; i++) {
+        if (radioInp1[i].checked == true) {
+          labels[i].innerText = "IN 1";
+          radioSpin[i].disabled = true;
+          radioSpin[i].labels[0].innerText = "";
+          radioTstat[i].disabled = true;
+          radioTstat[i].labels[0].innerText = "";
+          radioInp1[i].disabled = true;
+          radioInp1[i].labels[0].innerText = "";
+          radioInp2[i].disabled = true;
+          radioInp2[i].labels[0].innerText = "";
+          radioInp3[i].disabled = true;
+          radioInp3[i].labels[0].innerText = "";
+
+
+        }
+        else {
+          radioSpin[i].disabled = false;
+          radioSpin[i].labels[0].innerText = descripts[i];
+          if (labels[i].innerText == "") {
+            radioSpin[i].disabled = false;
+            radioSpin[i].labels[0].innerText = descripts[i];
+            radioTstat[i].disabled = false;
+            radioTstat[i].labels[0].innerText = descripts[i];
+            radioInp1[i].disabled = false;
+            radioInp1[i].labels[0].innerText = descripts[i];
+            radioInp2[i].disabled = false;
+            radioInp2[i].labels[0].innerText = descripts[i];
+            radioInp3[i].disabled = false;
+            radioInp3[i].labels[0].innerText = descripts[i];
+          }
+          if (labels[i].innerText != "spinacky") labels[i].innerText = "";
+        }
+
+      }
+
+    }
+
+  }
+
+  function setInputFunc(sel_input) {
+
+  }
+
+  function openSubPage(pageName, elmnt, color) {
+    // Hide all elements with class="tabcontent" by default */
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent2");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+
+    // Remove the background color of all tablinks/buttons
+    tablinks = document.getElementsByClassName("tablink2");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].style.backgroundColor = "";
+    }
+
+    // Show the specific tab content
+    document.getElementById(pageName).style.display = "block";
+
+    // Add the specific color to the button used to open the tab content
+    elmnt.style.backgroundColor = color;
   }
 
   function openPage(pageName, elmnt, color) {
@@ -581,7 +844,7 @@
 
     // Show the specific tab content
     document.getElementById(pageName).style.display = "block";
-
+    if (pageName == 'nastaveni') openSubPage(inp1div, document.getElementsByName("inp1div"), "lightgreen");
     // Add the specific color to the button used to open the tab content
     elmnt.style.backgroundColor = color;
   }
@@ -592,6 +855,7 @@
     <button class="tablink" id="defaultOpen" onclick="openPage('prehled', this, 'blue')">Přehled</button>
     <button class="tablink" onclick="openPage('termostat', this, 'green')">Termostat</button>
     <button class="tablink" onclick="openPage('spinacky', this, 'goldenrod')">Spínačky</button>
+    <button class="tablink" onclick="openPage('nastaveni', this, 'lightgreen')">Nastavení</button>
     <div id=prehled class="tabcontent">
       <div>
         <div class="space"></div>
@@ -631,153 +895,299 @@
           <div style="margin-top:75px;">
             <span id="tempLabel" style="width:50px;height:30px;margin-top:20px; ">Teplota </span>
             <span id="tempLabel" style="width:50px;height:30px;margin-top:20px;"">23</span>
-            <span id="tempLabel" style="width:50px;height:30px;margin-top:20px;""> °C</span>
+            <span id=" tempLabel" style="width:50px;height:30px;margin-top:20px;""> °C</span>
           </div>
         </div>
-        <div style="margin: auto;">
-          <button type="button" class="btn btn-warning btn-lg" id="in1">IN 1</button>
-          <button type="button" class="btn btn-warning btn-lg" id="in2">IN 2</button>
-          <button type="button" class="btn btn-warning btn-lg" id="in3">IN 3</button>
-          <button type="button" class="btn btn-warning btn-lg" id="in4">IN 4</button>
+        <div style=" margin: auto;">
+              <button type="button" class="btn btn-warning btn-lg" id="in1">IN 1</button>
+              <button type="button" class="btn btn-warning btn-lg" id="in2">IN 2</button>
+              <button type="button" class="btn btn-warning btn-lg" id="in3">IN 3</button>
+              <button type="button" class="btn btn-warning btn-lg" id="in4">IN 4</button>
+          </div>
         </div>
       </div>
-    </div>
-    <!--end-->
-    <div id="termostat" class="tabcontent" style="margin:auto">
-      <table style="margin:auto;">
-        <thead>
-          <tr>
-            <th>teplota</th>
-            <th class="spc"></th>
-            <th>čas</th>
-          </tr>
+      <!--end-->
+      <div id="termostat" class="tabcontent" style="margin:auto">
+        <table style="margin:auto;">
+          <thead>
+            <tr>
+              <th>teplota</th>
+              <th class="spc"></th>
+              <th>čas</th>
+            </tr>
 
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              <input id="t1" class="setTemp" type="number" min="0" max="50" step="0.5"></input>
-            </td>
-            <td class="spc"></td>
-            <td>
-              <input id="tt1" class="setTime" type="time"></input>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <input class="setTemp" type="number" min="0" max="50" step="0.5"></input>
-            </td>
-            <td class="spc"></td>
-            <td>
-              <input class="setTime" type="time"></input>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <input class="setTemp" type="number" min="0" max="50" step="0.5"></input>
-            </td>
-            <td class="spc"></td>
-            <td>
-              <input class="setTime" type="time"></input>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <input class="setTemp" type="number" min="0" max="50" step="0.5"></input>
-            </td>
-            <td class="spc"></td>
-            <td>
-              <input class="setTime" type="time"></input>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <form style="margin-top:50px">
-        <fieldset style="border:1;">
-          <legend>Výstup termostatu</legend>
-          <div style="margin:auto">
-            <input type="radio" id="rbtT1" name="prepTstat" onclick="OutputSelect(this)" value="all">
-            <label for="rbtT1">relé 1</label>
-            <input type="radio" id="rbtT2" name="prepTstat" onclick="OutputSelect(this)" value="false">
-            <label for="rbtT2">relé 2</label>
-            <input type="radio" id="rbtT3" name="prepTstat" onclick="OutputSelect(this)" value="true">
-            <label for="rbtT3">out 1</label>
-            <input type="radio" id="rbtT4" name="prepTstat" onclick="OutputSelect(this)" value="true">
-            <label for="rbtT4">out 2</label>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <input id="t1" class="setTemp" type="number" min="0" max="50" step="0.5" value="20"></input>
+              </td>
+              <td class="spc"></td>
+              <td>
+                <input id="tt1" class="setTime" type="time" value="00:00"></input>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input class="setTemp" type="number" min="0" max="50" step="0.5" value="20"></input>
+              </td>
+              <td class="spc"></td>
+              <td>
+                <input class="setTime" type="time" value="00:00"></input>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input class="setTemp" type="number" min="0" max="50" step="0.5" value="20"></input>
+              </td>
+              <td class="spc"></td>
+              <td>
+                <input class="setTime" type="time" value="00:00"></input>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input class="setTemp" type="number" min="0" max="50" step="0.5" value="20"></input>
+              </td>
+              <td class="spc"></td>
+              <td>
+                <input class="setTime" type="time" value="00:00"></input>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <form style="margin-top:50px">
+          <fieldset style="border:1;">
+            <legend>Výstup termostatu</legend>
+            <div style="margin:auto">
+              <input type="radio" id="rbtT1" name="prepTstat" onclick="OutputSelect(this)" value="all">
+              <label for="rbtT1">relé 1</label>
+              <input type="radio" id="rbtT2" name="prepTstat" onclick="OutputSelect(this)" value="false">
+              <label for="rbtT2">relé 2</label>
+              <input type="radio" id="rbtT3" name="prepTstat" onclick="OutputSelect(this)" value="true">
+              <label for="rbtT3">out 1</label>
+              <input type="radio" id="rbtT4" name="prepTstat" onclick="OutputSelect(this)" value="true">
+              <label for="rbtT4">out 2</label>
+            </div>
+          </fieldset>
+        </form>
+        <div>
+          <button type="submit" onclick="SaveData()">ULOŽIT</button>
+        </div>
+      </div>
+      <div id="spinacky" class="tabcontent">
+        <table style="margin:auto;">
+          <thead>
+            <tr>
+              <th style="text-align:center">on</th>
+              <th class="spc"></th>
+              <th style="text-align:center">off</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <input id="sp1on" class="setTimeSpinOn" type="time" value="00:00"></input>
+              </td>
+              <td class="spc"></td>
+              <td>
+                <input id="sp1off" class="setTimeSpinOff" type="time" value="00:00"></input>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input id="sp2on" class="setTimeSpinOn" type="time" value="00:00"></input>
+              </td>
+              <td class="spc"></td>
+              <td>
+                <input id="sp2off" class="setTimeSpinOff" type="time" value="00:00"></input>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input id="sp3on" class="setTimeSpinOn" type="time" value="00:00"></input>
+              </td>
+              <td class="spc"></td>
+              <td>
+                <input id="sp3off" class="setTimeSpinOff" type="time" value="00:00"></input>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input id="sp4on" class="setTimeSpinOn" type="time" value="00:00"></input>
+              </td>
+              <td class="spc"></td>
+              <td>
+                <input id="sp4off" class="setTimeSpinOff" type="time" value="00:00"></input>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <form style="margin-top:50px">
+          <fieldset style="border:1;">
+            <legend>Výstup spínacích hodin</legend>
+            <div style="margin:auto">
+              <input type="radio" id="rbtS1" name="prepSpin" value="all" onclick="OutputSelect(this)">
+              <label for="rbtS1">relé 1</label>
+              <input type="radio" id="rbtS2" name="prepSpin" value="false" onclick="OutputSelect(this)">
+              <label for="rbtS2">relé 2</label>
+              <input type="radio" id="rbtS3" name="prepSpin" value="true" onclick="OutputSelect(this)">
+              <label for="rbtS3">out 1</label>
+              <input type="radio" id="rbtS4" name="prepSpin" value="true" onclick="OutputSelect(this)">
+              <label for="rbtS4">out 2</label>
+            </div>
+          </fieldset>
+        </form>
+        <div>
+          <button type="submit" onclick="SaveData()">ULOŽIT</button>
+        </div>
+      </div>
+      <div id="nastaveni" class="tabcontent">
+        <button class="tablink2" id="defaultOpen" onclick="openSubPage('inp1div', this, 'lightgreen')">IN 1</button>
+        <button class="tablink2" onclick="openSubPage('inp2div', this, 'lightgreen')">IN 2</button>
+        <button class="tablink2" onclick="openSubPage('inp3div', this, 'lightgreen')">IN 3</button>
+        <button class="tablink2" onclick="openSubPage('inp4div', this, 'lightgreen')">IN 4</button>
+        <div id="inp1div" class="tabcontent2">
+          <form style="margin-top:50px">
+            <fieldset style="border:1;">
+              <legend>Funkce vstupu IN1</legend>
+              <div style="margin:auto">
+                <input type="radio" id="rbtInputs1_1" name="prepinp" onclick="setInputFunc(this)" value="all">
+                <label for="rbtInputs1_1">trvale</label>
+                <input type="radio" id="rbtInputs2_1" name="prepinp" onclick="setInputFunc(this)" value="false">
+                <label for="rbtInputs2_1">puls</label>
+                <input type="radio" id="rbtInputs3_1" name="prepinp" onclick="setInputFunc(this)" value="true">
+                <label for="rbtInputs3_1">časovač</label>
+              </div>
+            </fieldset>
+          </form>
+          <form style="margin-top:50px">
+            <fieldset style="border:1;">
+              <legend>Ovládáný výstup</legend>
+              <div style="margin:auto">
+                <input type="radio" id="rbtI1_1" name="prepInp1" onclick="OutputSelect(this)" value="all">
+                <label for="rbtI1_1">relé 1</label>
+                <input type="radio" id="rbtI1_2" name="prepInp1" onclick="OutputSelect(this)" value="false">
+                <label for="rbtI1_2">relé 2</label>
+                <input type="radio" id="rbtI1_3" name="prepInp1" onclick="OutputSelect(this)" value="true">
+                <label for="rbtI1_3">out 1</label>
+                <input type="radio" id="rbtI1_4" name="prepInp1" onclick="OutputSelect(this)" value="true">
+                <label for="rbtI1_4">out 2</label>
+              </div>
+            </fieldset>
+          </form>
+          <div style="margin-top:50px">
+            <label for="timer1" class="tmrLabel">čas</label>
+            <input type="time" step="1" id="timer1" class="timer" value="00:00:00">
           </div>
-        </fieldset>
-      </form>
-      <div>
-        <button type="submit" onclick="SaveData()">ULOŽIT</button>
+        </div>
+        <div id="inp2div" class="tabcontent2">
+          <form style="margin-top:50px">
+            <fieldset style="border:1;">
+              <legend>Funkce vstupu IN2</legend>
+              <div style="margin:auto">
+                <input type="radio" id="rbtInputs1_2" name="prepinp" onclick="setInputFunc(this)" value="all">
+                <label for="rbtInputs1_2">trvale</label>
+                <input type="radio" id="rbtInputs2_2" name="prepinp" onclick="setInputFunc(this)" value="false">
+                <label for="rbtInputs2_2">puls</label>
+                <input type="radio" id="rbtInputs3_2" name="prepinp" onclick="setInputFunc(this)" value="true">
+                <label for="rbtInputs3_2">časovač</label>
+              </div>
+            </fieldset>
+          </form>
+          <form style="margin-top:50px">
+            <fieldset style="border:1;">
+              <legend>Ovládáný výstup</legend>
+              <div style="margin:auto">
+                <input type="radio" id="rbtI2_1" name="prepInp2" onclick="OutputSelect(this)" value="all">
+                <label for="rbtI2_1">relé 1</label>
+                <input type="radio" id="rbtI2_2" name="prepInp2" onclick="OutputSelect(this)" value="false">
+                <label for="rbtI2_2">relé 2</label>
+                <input type="radio" id="rbtI2_3" name="prepInp2" onclick="OutputSelect(this)" value="true">
+                <label for="rbtI2_3">out 1</label>
+                <input type="radio" id="rbtI2_4" name="prepInp2" onclick="OutputSelect(this)" value="true">
+                <label for="rbtI2_4">out 2</label>
+              </div>
+            </fieldset>
+          </form>
+          <div style="margin-top:50px">
+            <label for="timer1" class="tmrLabel">čas</label>
+            <input type="time" step="1" id="timer1" class="timer" value="00:00:00">
+          </div>
+        </div>
+        <div id="inp3div" class="tabcontent2">
+          <form style="margin-top:50px">
+            <fieldset style="border:1;">
+              <legend>Funkce vstupu IN3</legend>
+              <div style="margin:auto">
+                <input type="radio" id="rbtInputs1" name="prepinp" onclick="setInputFunc(this)" value="all">
+                <label for="rbtInputs1">trvale</label>
+                <input type="radio" id="rbtInputs2" name="prepinp" onclick="setInputFunc(this)" value="false">
+                <label for="rbtInputs2">puls</label>
+                <input type="radio" id="rbtInputs3" name="prepinp" onclick="setInputFunc(this)" value="true">
+                <label for="rbtInputs3">časovač</label>
+              </div>
+            </fieldset>
+          </form>
+          <form style="margin-top:50px">
+            <fieldset style="border:1;">
+              <legend>Ovládáný výstup</legend>
+              <div style="margin:auto">
+                <input type="radio" id="rbtI3_1" name="prepInp3" onclick="OutputSelect(this)" value="all">
+                <label for="rbtI3_1">relé 1</label>
+                <input type="radio" id="rbtI3_2" name="prepInp3" onclick="OutputSelect(this)" value="false">
+                <label for="rbtI3_2">relé 2</label>
+                <input type="radio" id="rbtI3_3" name="prepInp3" onclick="OutputSelect(this)" value="true">
+                <label for="rbtI3_3">out 1</label>
+                <input type="radio" id="rbtI3_4" name="prepInp3" onclick="OutputSelect(this)" value="true">
+                <label for="rbtI3_4">out 2</label>
+              </div>
+            </fieldset>
+          </form>
+          <div style="margin-top:50px">
+            <label for="timer1" class="tmrLabel">čas</label>
+            <input type="time" step="1" id="timer1" class="timer" value="00:00:00">
+          </div>
+        </div>
+        <div id="inp4div" class="tabcontent2">
+          <form style="margin-top:50px">
+            <fieldset style="border:1;">
+              <legend>Funkce vstupu IN4</legend>
+              <div style="margin:auto">
+                <input type="radio" id="rbtInputs4_1" name="prepinp" onclick="setInputFunc(this)" value="all">
+                <label for="rbtInputs4_1">trvale</label>
+                <input type="radio" id="rbtInputs4_2" name="prepinp" onclick="setInputFunc(this)" value="false">
+                <label for="rbtInputs4_2">puls</label>
+                <input type="radio" id="rbtInputs4_3" name="prepinp" onclick="setInputFunc(this)" value="true">
+                <label for="rbtInputs4_3">časovač</label>
+              </div>
+            </fieldset>
+          </form>
+          <form style="margin-top:50px">
+            <fieldset style="border:1;">
+              <legend>Ovládáný výstup</legend>
+              <div style="margin:auto">
+                <input type="radio" id="rbtI4_1" name="prepInp4" onclick="OutputSelect(this)" value="all">
+                <label for="rbtI4_1">relé 1</label>
+                <input type="radio" id="rbtI4_2" name="prepInp4" onclick="OutputSelect(this)" value="false">
+                <label for="rbtI4_2">relé 2</label>
+                <input type="radio" id="rbtI4_3" name="prepInp4" onclick="OutputSelect(this)" value="true">
+                <label for="rbtI4_3">out 1</label>
+                <input type="radio" id="rbtI4_4" name="prepInp4" onclick="OutputSelect(this)" value="true">
+                <label for="rbtI4_4">out 2</label>
+              </div>
+            </fieldset>
+          </form>
+          <div style="margin-top:50px">
+            <label for="timer1" class="tmrLabel">čas</label>
+            <input type="time" step="1" id="timer1" class="timer" value="00:00:00">
+          </div>
+        </div>
+        <div>
+          <button type="submit" onclick="SaveData()">ULOŽIT</button>
+        </div>
       </div>
     </div>
-    <div id="spinacky" class="tabcontent">
-      <table style="margin:auto;">
-        <thead>
-          <tr>
-            <th style="text-align:center">on</th>
-            <th class="spc"></th>
-            <th style="text-align:center">off</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              <input id="sp1on" class="setTimeSpinOn" type="time"></input>
-            </td>
-            <td class="spc"></td>
-            <td>
-              <input id="sp1off" class="setTimeSpinOff" type="time"></input>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <input id="sp2on" class="setTimeSpinOn" type="time"></input>
-            </td>
-            <td class="spc"></td>
-            <td>
-              <input id="sp2off" class="setTimeSpinOff" type="time"></input>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <input id="sp3on" class="setTimeSpinOn" type="time"></input>
-            </td>
-            <td class="spc"></td>
-            <td>
-              <input id="sp3off" class="setTimeSpinOff" type="time"></input>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <input id="sp4on" class="setTimeSpinOn" type="time"></input>
-            </td>
-            <td class="spc"></td>
-            <td>
-              <input id="sp4off" class="setTimeSpinOff" type="time"></input>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <form style="margin-top:50px">
-        <fieldset style="border:1;">
-          <legend>Výstup spínacích hodin</legend>
-          <div style="margin:auto">
-            <input type="radio" id="rbtS1" name="prepSpin" value="all" onclick="OutputSelect(this)" >
-            <label for="rbtS1">relé 1</label>
-            <input type="radio" id="rbtS2" name="prepSpin" value="false" onclick="OutputSelect(this)" >
-            <label for="rbtS2">relé 2</label>
-            <input type="radio" id="rbtS3" name="prepSpin" value="true" onclick="OutputSelect(this)" >
-            <label for="rbtS3">out 1</label>
-            <input type="radio" id="rbtS4" name="prepSpin" value="true" onclick="OutputSelect(this)" >
-            <label for="rbtS4">out 2</label>
-          </div>
-        </fieldset>
-      </form>
-      <div>
-        <button type="submit" onclick="SaveData()">ULOŽIT</button>
-      </div>
-    </div>
-  </div>
 </body>
+
 </html>
