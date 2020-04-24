@@ -548,10 +548,10 @@
   }
 
   function OutputSelect(selectedOut) {
-    document.getElementById("sel1").innerText = "";
-    document.getElementById("sel2").innerText = "";
-    document.getElementById("sel3").innerText = "";
-    document.getElementById("sel4").innerText = "";
+   // document.getElementById("sel1").innerText = "";
+  //  document.getElementById("sel2").innerText = "";
+   // document.getElementById("sel3").innerText = "";
+   // document.getElementById("sel4").innerText = "";
 
 
     if (selectedOut.name == "prepSpin") spinackyLabel = selectedOut;
@@ -567,9 +567,10 @@
     var descripts = ["relé 1", "relé 2", "out 1", "out 2"];
 
     //karta termostat
-    if (selectedOut.name == "prepTtsat") {
+    if (selectedOut.name == "prepTstat") {
       termostatLabel = selectedOut;
       for (i = 0; i < radioTstat.length; i++) {
+	    if(labels[i].innerText == "termostat")labels[i].innerText = "";
         if (radioTstat[i].checked == true) {
           labels[i].innerText = "termostat";
           radioSpin[i].disabled = true;
@@ -598,7 +599,7 @@
             radioInp4[i].disabled = false;
             radioInp4[i].labels[0].innerText = descripts[i];
           }
-          if (labels[i].innerText != "spinacky") labels[i].innerText = "";
+         // if (labels[i].innerText != "spinacky") labels[i].innerText = "";
         }
 
       }
@@ -608,6 +609,7 @@
     // karta spinacky
     if (selectedOut.name == "prepSpin") {
       for (i = 0; i < radioSpin.length; i++) {
+	  if(labels[i].innerText == "spínačky")labels[i].innerText = "";
         if (radioSpin[i].checked == true) {
           labels[i].innerText = "spínačky";
           radioTstat[i].disabled = true;
@@ -635,7 +637,7 @@
             radioInp4[i].labels[0].innerText = descripts[i];
           }
 
-          if (labels[i].innerText != "termostat") labels[i].innerText = "";
+         // if (labels[i].innerText != "termostat") labels[i].innerText = "";
         }
       }
 
@@ -644,6 +646,7 @@
     //karta IN 1
     if (selectedOut.name == "prepInp1") {
       for (i = 0; i < radioInp1.length; i++) {
+	  if(labels[i].innerText == "IN 1")labels[i].innerText = "";
         if (radioInp1[i].checked == true) {
           labels[i].innerText = "IN 1";
           radioSpin[i].disabled = true;
@@ -674,7 +677,7 @@
             radioInp4[i].disabled = false;
             radioInp4[i].labels[0].innerText = descripts[i];
           }
-          if (labels[i].innerText != "spinacky") labels[i].innerText = "";
+         // if (labels[i].innerText != "spinacky") labels[i].innerText = "";
         }
 
       }
@@ -684,6 +687,7 @@
     //karta IN 2
     if (selectedOut.name == "prepInp2") {
       for (i = 0; i < radioInp1.length; i++) {
+	  if(labels[i].innerText == "IN 2")labels[i].innerText = "";
         if (radioInp1[i].checked == true) {
           labels[i].innerText = "IN 2";
           radioSpin[i].disabled = true;
@@ -714,7 +718,7 @@
             radioInp4[i].disabled = false;
             radioInp4[i].labels[0].innerText = descripts[i];
           }
-          if (labels[i].innerText != "spinacky") labels[i].innerText = "";
+          //if (labels[i].innerText != "spinacky") labels[i].innerText = "";
         }
 
       }
@@ -724,6 +728,7 @@
     //karta IN 3
     if (selectedOut.name == "prepInp3") {
       for (i = 0; i < radioInp1.length; i++) {
+	  if(labels[i].innerText == "IN 3")labels[i].innerText = "";
         if (radioInp1[i].checked == true) {
           labels[i].innerText = "IN 3";
           radioSpin[i].disabled = true;
@@ -754,7 +759,7 @@
             radioInp4[i].disabled = false;
             radioInp4[i].labels[0].innerText = descripts[i];
           }
-          if (labels[i].innerText != "spinacky") labels[i].innerText = "";
+         // if (labels[i].innerText != "spinacky") labels[i].innerText = "";
         }
 
       }
@@ -764,8 +769,9 @@
     //karta IN 4
     if (selectedOut.name == "prepInp4") {
       for (i = 0; i < radioInp1.length; i++) {
+	  if(labels[i].innerText == "IN 4")labels[i].innerText = "";
         if (radioInp1[i].checked == true) {
-          labels[i].innerText = "IN 1";
+          labels[i].innerText = "IN 4";
           radioSpin[i].disabled = true;
           radioSpin[i].labels[0].innerText = "";
           radioTstat[i].disabled = true;
@@ -794,7 +800,7 @@
             radioInp3[i].disabled = false;
             radioInp3[i].labels[0].innerText = descripts[i];
           }
-          if (labels[i].innerText != "spinacky") labels[i].innerText = "";
+         // if (labels[i].innerText != "spinacky") labels[i].innerText = "";
         }
 
       }
