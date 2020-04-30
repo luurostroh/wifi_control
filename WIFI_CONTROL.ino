@@ -170,6 +170,9 @@ Serial.println(payload[delimiters[11]+ 1]);
 
     else if(payload[0]=='#')
     {
+#ifdef DBG
+      Serial.println("IO");
+#endif
      switch (payload[3])
      {
      case '1':
