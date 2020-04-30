@@ -11,9 +11,13 @@ termostat:
 spinacky:
 #S*<t1on>_<t1off>*<t2on>_<t2off>*<t3on>_<t3off>*<t4on>_<t4off>
 
-vystupy pro termostat a spinacky:
-#O*<termostatOut>*<spinackyOut>* 
 
+
+vystupy pro termostat , spinacky a ovladajici vstupy:
+#O*<termostatOut>*<spinackyOut>*<in1_Out>*<in2_Out>*<in3_Out>*<in4_Out>* 
+
+vstupy vystupy:
+#IO*<rezim1>_<assocOut1>_<time1(v minutach)>*<rezim2>_<assocOut2>_<time2(v minutach)>*<rezim3>_<assocOut3>_<time3(v minutach)>*<rezim4>_<assocOut1>_<time4(v minutach)>*
 
 device to page
 

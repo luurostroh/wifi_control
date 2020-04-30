@@ -23,8 +23,6 @@
       text-align: center;
     }
 
-
-
     .btn {
       width: 105px;
       height: 100px;
@@ -341,8 +339,8 @@
     background-color: lightgreen;
   }
 
-  .btn-secondary {
-    background: yellowgreen;
+  .btn {
+    background-color: gray;
   }
 
   /* Style tab links */
@@ -402,6 +400,39 @@
   function init() {
     Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
     Socket.onmessage = function (event) {
+      if(event.data[1]=='I'){
+        switch(event.data[2]){
+          case "1": if(event.data[4]=='n')document.getElementById("in1").style.backgroundColor = "goldenrod";
+               else document.getElementById("in1").style.backgroundColor = "gray";
+               break;
+          case "2": if(event.data[4]=='n')document.getElementById("in2").style.backgroundColor = "goldenrod";
+               else document.getElementById("in2").style.backgroundColor = "gray";
+               break;   
+          case "3": if(event.data[4]=='n')document.getElementById("in3").style.backgroundColor = "goldenrod";
+               else document.getElementById("in3").style.backgroundColor = "gray";
+               break;  
+          case "4": if(event.data[4]=='n')document.getElementById("in4").style.backgroundColor = "goldenrod";
+               else document.getElementById("in4").style.backgroundColor = "gray";
+               break;                         
+        }
+      }
+    if(event.data[1]=='O'){
+        switch(event.data[2]){
+          case "1": if(event.data[4]=='n')document.getElementById("out1").style.backgroundColor = "green";
+               else document.getElementById("out1").style.backgroundColor = "gray";
+               break;
+          case "2": if(event.data[4]=='n')document.getElementById("out2").style.backgroundColor = "green";
+               else document.getElementById("out2").style.backgroundColor = "gray";
+               break;   
+          case "3": if(event.data[4]=='n')document.getElementById("out3").style.backgroundColor = "green";
+               else document.getElementById("out3").style.backgroundColor = "gray";
+               break;  
+          case "4": if(event.data[4]=='n')document.getElementById("out4").style.backgroundColor = "green";
+               else document.getElementById("out4").style.backgroundColor = "gray";
+               break;                         
+        }
+      }
+    
       SortData(event.data);
     }
     document.getElementById("defaultOpen").click();
@@ -480,18 +511,62 @@
     message += "#O*" + idx.toString();
     const outindex1 = Array.from(document.getElementsByName("prepSpin"));
     const idx1 = outindex1.findIndex(x => x.checked == true);
-    message += "*" + idx1.toString() + "*";
+    message += "*" + idx1.toString();
 
-    //  Socket.send(message);
+    //data IO
+    var IOtimers = document.getElementsByClassName("timer");
+    message += "*#IO" 
+    //IO 1
+    const indexMode1 = Array.from(document.getElementsByName("prepInMode1"));
+    const idxMode1 = indexMode1.findIndex(x => x.checked == true);
+    message += "*" + idxMode1.toString() + "_";
+    const outindex2 = Array.from(document.getElementsByName("prepInp1"));
+    const idx2 = outindex2.findIndex(x => x.checked == true);
+    message += idx2.toString()+ "|";
+    message += ToSeconds(IOtimers[0].value) + "*";
+    //IO 2
+    const indexMode2 = Array.from(document.getElementsByName("prepInMode2"));
+    const idxMode2 = indexMode2.findIndex(x => x.checked == true);
+    message += idxMode2.toString() + "_";
+    const outindex3 = Array.from(document.getElementsByName("prepInp2"));
+    const idx3 = outindex3.findIndex(x => x.checked == true);
+    message +=  idx3.toString()+ "|";
+    message += ToSeconds(IOtimers[1].value) + "*";
+    //IO 3
+    const indexMode3 = Array.from(document.getElementsByName("prepInMode3"));
+    const idxMode3 = indexMode3.findIndex(x => x.checked == true);
+    message += idxMode3.toString() + "_";
+    const outindex4 = Array.from(document.getElementsByName("prepInp3"));
+    const idx4 = outindex4.findIndex(x => x.checked == true);
+    message += idx4.toString()+ "|";
+    message += ToSeconds(IOtimers[2].value) + "*";
+    //IO 4
+    const indexMode4 = Array.from(document.getElementsByName("prepInMode4"));
+    const idxMode4 = indexMode4.findIndex(x => x.checked == true);
+    message +=  idxMode4.toString() + "_";
+    const outindex5 = Array.from(document.getElementsByName("prepInp4"));
+    const idx5 = outindex5.findIndex(x => x.checked == true);
+    message +=  idx5.toString()+ "|";
+    message += ToSeconds(IOtimers[3].value) + "*";
+    Socket.send(message);
   }
 
   //funkce pro prevod casu na minuty
   function ToMinutes(cas) {
+    
     var pom = parseInt(cas.substr(0, 2));
     var pom2 = parseInt(cas.substr(3, 2));
     return (pom * 60 + pom2).toString();
   }
 
+      //funkce pro prevod casu na minuty
+      function ToSeconds(cas) {
+        if(cas.length<6)cas+=":00"
+        var pom = parseInt(cas.substr(0, 2));
+        var pom2 = parseInt(cas.substr(3, 2));
+        var pom3 = parseInt(cas.substr(6, 2));
+        return ((pom * 3600) + (pom2*60) + pom3);
+      }
   //funkce pro prevod minut na HH:MM
   function FromMinutes(cas) {
     var pom = parseInt(cas);
@@ -503,55 +578,44 @@
 
   function btn1click() {
     var btn = document.getElementById("out1");
-    if (btn.style.backgroundColor == "gray") {
-      btn.style.backgroundColor = "green";
-      Socket.send("#C*1on");
-    }
-    else {
-      btn.style.backgroundColor = "gray";
-      Socket.send("#C*1of");
-    }
-    // else led.style.color = "red";
+    if (btn.style.backgroundColor == "") btn.style.backgroundColor = "gray";   
+    if (btn.style.backgroundColor == "gray")Socket.send("#C*1on");       
+    else Socket.send("#C*1of");
   }
   function btn2click() {
     var btn = document.getElementById("out2");
-    if (btn.style.backgroundColor == "gray") {
-      btn.style.backgroundColor = "green";
-      Socket.send("#C*2on");
-    }
-    else {
-      btn.style.backgroundColor = "gray";
-      Socket.send("#C*2of");
-    };
+    if (btn.style.backgroundColor == "") btn.style.backgroundColor = "gray";   
+    if (btn.style.backgroundColor == "gray")Socket.send("#C*2on");       
+    else Socket.send("#C*2of");
   }
   function btn3click() {
     var btn = document.getElementById("out3");
-    if (btn.style.backgroundColor == "gray") {
-      btn.style.backgroundColor = "green";
-      Socket.send("#C*3on");
-    }
-    else {
-      btn.style.backgroundColor = "gray";
-      Socket.send("#C*3of");
-    }
+    if (btn.style.backgroundColor == "") btn.style.backgroundColor = "gray";   
+    if (btn.style.backgroundColor == "gray")Socket.send("#C*3on");       
+    else Socket.send("#C*3of");
   }
   function btn4click() {
     var btn = document.getElementById("out4");
-    if (btn.style.backgroundColor == "gray") {
-      btn.style.backgroundColor = "green";
-      Socket.send("#C*4on");
-    }
-    else {
-      btn.style.backgroundColor = "gray";
-      Socket.send("#C*4of");
-    }
+    if (btn.style.backgroundColor == "") btn.style.backgroundColor = "gray";   
+    if (btn.style.backgroundColor == "gray")Socket.send("#C*4on");       
+    else Socket.send("#C*4of");
   }
 
+function SetActualTime()
+{
+  var t = new Date();
+  var mm = t.getMinutes();
+  var hh = t.getHours();
+  var x = (parseInt(hh)*60)+(parseInt(mm));
+  var timeStamp = "&T*"+ x.toString()+ "*";
+  Socket.send(timeStamp)
+}
+
   function OutputSelect(selectedOut) {
-   // document.getElementById("sel1").innerText = "";
-  //  document.getElementById("sel2").innerText = "";
-   // document.getElementById("sel3").innerText = "";
-   // document.getElementById("sel4").innerText = "";
+    // document.getElementById("sel1").innerText = "";
+    //  document.getElementById("sel2").innerText = "";
+    // document.getElementById("sel3").innerText = "";
+    // document.getElementById("sel4").innerText = "";
 
 
     if (selectedOut.name == "prepSpin") spinackyLabel = selectedOut;
@@ -569,8 +633,30 @@
     //karta termostat
     if (selectedOut.name == "prepTstat") {
       termostatLabel = selectedOut;
-      for (i = 0; i < radioTstat.length; i++) {
-	    if(labels[i].innerText == "termostat")labels[i].innerText = "";
+      //reset
+      if (selectedOut.id == "rbtT5") {
+        for (ii = 0; ii < radioTstat.length - 1; ii++) {
+          if (labels[ii].innerText == "termostat") {
+            labels[ii].innerText = "";
+            radioSpin[ii].disabled = false;
+            radioSpin[ii].labels[0].innerText = descripts[ii];
+            radioInp1[ii].disabled = false;
+            radioInp1[ii].labels[0].innerText = descripts[ii];
+            radioInp2[ii].disabled = false;
+            radioInp2[ii].labels[0].innerText = descripts[ii];
+            radioInp3[ii].disabled = false;
+            radioInp3[ii].labels[0].innerText = descripts[ii];
+            radioInp4[ii].disabled = false;
+            radioInp4[ii].labels[0].innerText = descripts[ii];
+          }
+        }
+        selectedOut.checked = false;
+      }
+
+
+
+      for (i = 0; i < radioTstat.length - 1; i++) {
+        if (labels[i].innerText == "termostat") labels[i].innerText = "";
         if (radioTstat[i].checked == true) {
           labels[i].innerText = "termostat";
           radioSpin[i].disabled = true;
@@ -589,6 +675,7 @@
         else {
           radioSpin[i].disabled = false;
           radioSpin[i].labels[0].innerText = descripts[i];
+
           if (labels[i].innerText == "") {
             radioInp1[i].disabled = false;
             radioInp1[i].labels[0].innerText = descripts[i];
@@ -599,7 +686,7 @@
             radioInp4[i].disabled = false;
             radioInp4[i].labels[0].innerText = descripts[i];
           }
-         // if (labels[i].innerText != "spinacky") labels[i].innerText = "";
+          // if (labels[i].innerText != "spinacky") labels[i].innerText = "";
         }
 
       }
@@ -608,8 +695,27 @@
 
     // karta spinacky
     if (selectedOut.name == "prepSpin") {
-      for (i = 0; i < radioSpin.length; i++) {
-	  if(labels[i].innerText == "spínačky")labels[i].innerText = "";
+      //reset
+      if (selectedOut.id == "rbtS5") {
+        for (ii = 0; ii < radioSpin.length - 1; ii++) {
+          if (labels[ii].innerText == "spínačky") {
+            labels[ii].innerText = "";
+            radioTstat[ii].disabled = false;
+            radioTstat[ii].labels[0].innerText = descripts[ii];
+            radioInp1[ii].disabled = false;
+            radioInp1[ii].labels[0].innerText = descripts[ii];
+            radioInp2[ii].disabled = false;
+            radioInp2[ii].labels[0].innerText = descripts[ii];
+            radioInp3[ii].disabled = false;
+            radioInp3[ii].labels[0].innerText = descripts[ii];
+            radioInp4[ii].disabled = false;
+            radioInp4[ii].labels[0].innerText = descripts[ii];
+          }
+        }
+        selectedOut.checked = false;
+      }
+      for (i = 0; i < radioSpin.length - 1; i++) {
+        if (labels[i].innerText == "spínačky") labels[i].innerText = "";
         if (radioSpin[i].checked == true) {
           labels[i].innerText = "spínačky";
           radioTstat[i].disabled = true;
@@ -636,17 +742,33 @@
             radioInp4[i].disabled = false;
             radioInp4[i].labels[0].innerText = descripts[i];
           }
-
-         // if (labels[i].innerText != "termostat") labels[i].innerText = "";
         }
       }
-
     }
 
     //karta IN 1
     if (selectedOut.name == "prepInp1") {
-      for (i = 0; i < radioInp1.length; i++) {
-	  if(labels[i].innerText == "IN 1")labels[i].innerText = "";
+      //reset
+      if (selectedOut.id == "rbtI1_5") {
+        for (ii = 0; ii < radioSpin.length - 1; ii++) {
+          if (labels[ii].innerText == "IN 1") {
+            labels[ii].innerText = "";
+            radioTstat[ii].disabled = false;
+            radioTstat[ii].labels[0].innerText = descripts[ii];
+            radioSpin[ii].disabled = false;
+            radioSpin[ii].labels[0].innerText = descripts[ii];
+            radioInp2[ii].disabled = false;
+            radioInp2[ii].labels[0].innerText = descripts[ii];
+            radioInp3[ii].disabled = false;
+            radioInp3[ii].labels[0].innerText = descripts[ii];
+            radioInp4[ii].disabled = false;
+            radioInp4[ii].labels[0].innerText = descripts[ii];
+          }
+        }
+        selectedOut.checked = false;
+      }
+      for (i = 0; i < radioInp1.length - 1; i++) {
+        if (labels[i].innerText == "IN 1") labels[i].innerText = "";
         if (radioInp1[i].checked == true) {
           labels[i].innerText = "IN 1";
           radioSpin[i].disabled = true;
@@ -663,8 +785,6 @@
 
         }
         else {
-          radioSpin[i].disabled = false;
-          radioSpin[i].labels[0].innerText = descripts[i];
           if (labels[i].innerText == "") {
             radioSpin[i].disabled = false;
             radioSpin[i].labels[0].innerText = descripts[i];
@@ -677,18 +797,33 @@
             radioInp4[i].disabled = false;
             radioInp4[i].labels[0].innerText = descripts[i];
           }
-         // if (labels[i].innerText != "spinacky") labels[i].innerText = "";
         }
-
       }
-
     }
 
     //karta IN 2
     if (selectedOut.name == "prepInp2") {
-      for (i = 0; i < radioInp1.length; i++) {
-	  if(labels[i].innerText == "IN 2")labels[i].innerText = "";
-        if (radioInp1[i].checked == true) {
+      //reset
+      if (selectedOut.id == "rbtI2_5") {
+        for (ii = 0; ii < radioSpin.length - 1; ii++) {
+          if (labels[ii].innerText == "IN 2") {
+            labels[ii].innerText = "";
+            radioTstat[ii].disabled = false;
+            radioTstat[ii].labels[0].innerText = descripts[ii];
+            radioSpin[ii].disabled = false;
+            radioSpin[ii].labels[0].innerText = descripts[ii];
+            radioInp1[ii].disabled = false;
+            radioInp1[ii].labels[0].innerText = descripts[ii];
+            radioInp3[ii].disabled = false;
+            radioInp3[ii].labels[0].innerText = descripts[ii];
+            radioInp4[ii].disabled = false;
+            radioInp4[ii].labels[0].innerText = descripts[ii];
+          }
+        }
+      }
+      for (i = 0; i < radioInp2.length - 1; i++) {
+        if (labels[i].innerText == "IN 2") labels[i].innerText = "";
+        if (radioInp2[i].checked == true) {
           labels[i].innerText = "IN 2";
           radioSpin[i].disabled = true;
           radioSpin[i].labels[0].innerText = "";
@@ -700,12 +835,10 @@
           radioInp3[i].labels[0].innerText = "";
           radioInp4[i].disabled = true;
           radioInp4[i].labels[0].innerText = "";
-
-
         }
         else {
-          radioSpin[i].disabled = false;
-          radioSpin[i].labels[0].innerText = descripts[i];
+          // radioSpin[i].disabled = false;
+          // radioSpin[i].labels[0].innerText = descripts[i];
           if (labels[i].innerText == "") {
             radioSpin[i].disabled = false;
             radioSpin[i].labels[0].innerText = descripts[i];
@@ -718,18 +851,33 @@
             radioInp4[i].disabled = false;
             radioInp4[i].labels[0].innerText = descripts[i];
           }
-          //if (labels[i].innerText != "spinacky") labels[i].innerText = "";
         }
-
       }
-
     }
-
     //karta IN 3
     if (selectedOut.name == "prepInp3") {
-      for (i = 0; i < radioInp1.length; i++) {
-	  if(labels[i].innerText == "IN 3")labels[i].innerText = "";
-        if (radioInp1[i].checked == true) {
+      //reset
+      if (selectedOut.id == "rbtI3_5") {
+        for (ii = 0; ii < radioSpin.length - 1; ii++) {
+          if (labels[ii].innerText == "IN 3") {
+            labels[ii].innerText = "";
+            radioTstat[ii].disabled = false;
+            radioTstat[ii].labels[0].innerText = descripts[ii];
+            radioSpin[ii].disabled = false;
+            radioSpin[ii].labels[0].innerText = descripts[ii];
+            radioInp1[ii].disabled = false;
+            radioInp1[ii].labels[0].innerText = descripts[ii];
+            radioInp2[ii].disabled = false;
+            radioInp2[ii].labels[0].innerText = descripts[ii];
+            radioInp4[ii].disabled = false;
+            radioInp4[ii].labels[0].innerText = descripts[ii];
+          }
+        }
+        selectedOut.checked = false;
+      }
+      for (i = 0; i < radioInp3.length - 1; i++) {
+        if (labels[i].innerText == "IN 3") labels[i].innerText = "";
+        if (radioInp3[i].checked == true) {
           labels[i].innerText = "IN 3";
           radioSpin[i].disabled = true;
           radioSpin[i].labels[0].innerText = "";
@@ -745,8 +893,6 @@
 
         }
         else {
-          radioSpin[i].disabled = false;
-          radioSpin[i].labels[0].innerText = descripts[i];
           if (labels[i].innerText == "") {
             radioSpin[i].disabled = false;
             radioSpin[i].labels[0].innerText = descripts[i];
@@ -759,18 +905,33 @@
             radioInp4[i].disabled = false;
             radioInp4[i].labels[0].innerText = descripts[i];
           }
-         // if (labels[i].innerText != "spinacky") labels[i].innerText = "";
         }
-
       }
-
     }
-
     //karta IN 4
     if (selectedOut.name == "prepInp4") {
-      for (i = 0; i < radioInp1.length; i++) {
-	  if(labels[i].innerText == "IN 4")labels[i].innerText = "";
-        if (radioInp1[i].checked == true) {
+      //reset
+      if (selectedOut.id == "rbtI4_5") {
+        for (ii = 0; ii < radioSpin.length - 1; ii++) {
+          if (labels[ii].innerText == "IN 4") {
+            labels[ii].innerText = "";
+            radioTstat[ii].disabled = false;
+            radioTstat[ii].labels[0].innerText = descripts[ii];
+            radioSpin[ii].disabled = false;
+            radioSpin[ii].labels[0].innerText = descripts[ii];
+            radioInp1[ii].disabled = false;
+            radioInp1[ii].labels[0].innerText = descripts[ii];
+            radioInp2[ii].disabled = false;
+            radioInp2[ii].labels[0].innerText = descripts[ii];
+            radioInp3[ii].disabled = false;
+            radioInp3[ii].labels[0].innerText = descripts[ii];
+          }
+        }
+        selectedOut.checked = false;
+      }
+      for (i = 0; i < radioInp4.length - 1; i++) {
+        if (labels[i].innerText == "IN 4") labels[i].innerText = "";
+        if (radioInp4[i].checked == true) {
           labels[i].innerText = "IN 4";
           radioSpin[i].disabled = true;
           radioSpin[i].labels[0].innerText = "";
@@ -782,12 +943,8 @@
           radioInp2[i].labels[0].innerText = "";
           radioInp3[i].disabled = true;
           radioInp3[i].labels[0].innerText = "";
-
-
         }
         else {
-          radioSpin[i].disabled = false;
-          radioSpin[i].labels[0].innerText = descripts[i];
           if (labels[i].innerText == "") {
             radioSpin[i].disabled = false;
             radioSpin[i].labels[0].innerText = descripts[i];
@@ -800,17 +957,9 @@
             radioInp3[i].disabled = false;
             radioInp3[i].labels[0].innerText = descripts[i];
           }
-         // if (labels[i].innerText != "spinacky") labels[i].innerText = "";
         }
-
       }
-
     }
-
-  }
-
-  function setInputFunc(sel_input) {
-
   }
 
   function openSubPage(pageName, elmnt, color) {
@@ -869,16 +1018,16 @@
           <tbody>
             <tr>
               <td>
-                <button type="button" class="btn btn-secondary btn-lg" onclick="btn1click()" id="out1">RELE 1</button>
+                <button type="button" class="btn" onclick="btn1click()" id="out1">RELE 1</button>
+              </td> 
+              <td>
+                <button type="button" class="btn  btn-lg" onclick="btn2click()" id="out2">RELE 2</button>
+              </td>
+              <td> 
+                <button type="button" class="btn  btn-lg" onclick="btn3click()" id="out3">OUT 1</button>
               </td>
               <td>
-                <button type="button" class="btn btn-secondary btn-lg" onclick="btn2click()" id="out2">RELE 2</button>
-              </td>
-              <td>
-                <button type="button" class="btn btn-secondary btn-lg" onclick="btn3click()" id="out3">OUT 1</button>
-              </td>
-              <td>
-                <button type="button" class="btn btn-secondary btn-lg" onclick="btn4click()" id="out4">OUT 2</button>
+                <button type="button" class="btn  btn-lg" onclick="btn4click()" id="out4">OUT 2</button>
               </td>
             </tr>
             <tr>
@@ -905,10 +1054,13 @@
           </div>
         </div>
         <div style=" margin: auto;">
-              <button type="button" class="btn btn-warning btn-lg" id="in1">IN 1</button>
-              <button type="button" class="btn btn-warning btn-lg" id="in2">IN 2</button>
-              <button type="button" class="btn btn-warning btn-lg" id="in3">IN 3</button>
-              <button type="button" class="btn btn-warning btn-lg" id="in4">IN 4</button>
+              <button type="button" class="btn  btn-lg" id="in1">IN 1</button>
+              <button type="button" class="btn  btn-lg" id="in2">IN 2</button>
+              <button type="button" class="btn  btn-lg" id="in3">IN 3</button>
+              <button type="button" class="btn  btn-lg" id="in4">IN 4</button>
+          </div>
+          <div>
+            <button type="button"  id="btnSetTime" onclick="SetActualTime()" style="margin-top:50px;" > Nastav aktuální čas</button>
           </div>
         </div>
       </div>
@@ -974,6 +1126,8 @@
               <label for="rbtT3">out 1</label>
               <input type="radio" id="rbtT4" name="prepTstat" onclick="OutputSelect(this)" value="true">
               <label for="rbtT4">out 2</label>
+              <input type="radio" id="rbtT5" name="prepTstat" onclick="OutputSelect(this)" value="true">
+              <label for="rbtT5">RST</label>
             </div>
           </fieldset>
         </form>
@@ -1041,6 +1195,8 @@
               <label for="rbtS3">out 1</label>
               <input type="radio" id="rbtS4" name="prepSpin" value="true" onclick="OutputSelect(this)">
               <label for="rbtS4">out 2</label>
+              <input type="radio" id="rbtS5" name="prepSpin" value="true" onclick="OutputSelect(this)">
+              <label for="rbtS5">RST</label>
             </div>
           </fieldset>
         </form>
@@ -1058,11 +1214,11 @@
             <fieldset style="border:1;">
               <legend>Funkce vstupu IN1</legend>
               <div style="margin:auto">
-                <input type="radio" id="rbtInputs1_1" name="prepinp" onclick="setInputFunc(this)" value="all">
+                <input type="radio" id="rbtInputs1_1" name="prepInMode1" onclick="setInputFunc(this)" value="all">
                 <label for="rbtInputs1_1">trvale</label>
-                <input type="radio" id="rbtInputs2_1" name="prepinp" onclick="setInputFunc(this)" value="false">
+                <input type="radio" id="rbtInputs2_1" name="prepInMode1" onclick="setInputFunc(this)" value="false">
                 <label for="rbtInputs2_1">puls</label>
-                <input type="radio" id="rbtInputs3_1" name="prepinp" onclick="setInputFunc(this)" value="true">
+                <input type="radio" id="rbtInputs3_1" name="prepInMode1" onclick="setInputFunc(this)" value="true">
                 <label for="rbtInputs3_1">časovač</label>
               </div>
             </fieldset>
@@ -1079,6 +1235,8 @@
                 <label for="rbtI1_3">out 1</label>
                 <input type="radio" id="rbtI1_4" name="prepInp1" onclick="OutputSelect(this)" value="true">
                 <label for="rbtI1_4">out 2</label>
+                <input type="radio" id="rbtI1_5" name="prepInp1" onclick="OutputSelect(this)" value="true">
+                <label for="rbtI1_5">RST</label>
               </div>
             </fieldset>
           </form>
@@ -1092,11 +1250,11 @@
             <fieldset style="border:1;">
               <legend>Funkce vstupu IN2</legend>
               <div style="margin:auto">
-                <input type="radio" id="rbtInputs1_2" name="prepinp" onclick="setInputFunc(this)" value="all">
+                <input type="radio" id="rbtInputs1_2" name="prepInMode2" onclick="setInputFunc(this)" value="all">
                 <label for="rbtInputs1_2">trvale</label>
-                <input type="radio" id="rbtInputs2_2" name="prepinp" onclick="setInputFunc(this)" value="false">
+                <input type="radio" id="rbtInputs2_2" name="prepInMode2" onclick="setInputFunc(this)" value="false">
                 <label for="rbtInputs2_2">puls</label>
-                <input type="radio" id="rbtInputs3_2" name="prepinp" onclick="setInputFunc(this)" value="true">
+                <input type="radio" id="rbtInputs3_2" name="prepInMode2" onclick="setInputFunc(this)" value="true">
                 <label for="rbtInputs3_2">časovač</label>
               </div>
             </fieldset>
@@ -1113,6 +1271,8 @@
                 <label for="rbtI2_3">out 1</label>
                 <input type="radio" id="rbtI2_4" name="prepInp2" onclick="OutputSelect(this)" value="true">
                 <label for="rbtI2_4">out 2</label>
+                <input type="radio" id="rbtI2_5" name="prepInp2" onclick="OutputSelect(this)" value="true">
+                <label for="rbtI2_5">RST</label>
               </div>
             </fieldset>
           </form>
@@ -1126,11 +1286,11 @@
             <fieldset style="border:1;">
               <legend>Funkce vstupu IN3</legend>
               <div style="margin:auto">
-                <input type="radio" id="rbtInputs1" name="prepinp" onclick="setInputFunc(this)" value="all">
+                <input type="radio" id="rbtInputs1" name="prepInMode3" onclick="setInputFunc(this)" value="all">
                 <label for="rbtInputs1">trvale</label>
-                <input type="radio" id="rbtInputs2" name="prepinp" onclick="setInputFunc(this)" value="false">
+                <input type="radio" id="rbtInputs2" name="prepInMode3" onclick="setInputFunc(this)" value="false">
                 <label for="rbtInputs2">puls</label>
-                <input type="radio" id="rbtInputs3" name="prepinp" onclick="setInputFunc(this)" value="true">
+                <input type="radio" id="rbtInputs3" name="prepInMode3" onclick="setInputFunc(this)" value="true">
                 <label for="rbtInputs3">časovač</label>
               </div>
             </fieldset>
@@ -1147,6 +1307,8 @@
                 <label for="rbtI3_3">out 1</label>
                 <input type="radio" id="rbtI3_4" name="prepInp3" onclick="OutputSelect(this)" value="true">
                 <label for="rbtI3_4">out 2</label>
+                <input type="radio" id="rbtI3_5" name="prepInp3" onclick="OutputSelect(this)" value="true">
+                <label for="rbtI3_5">RST</label>
               </div>
             </fieldset>
           </form>
@@ -1160,11 +1322,11 @@
             <fieldset style="border:1;">
               <legend>Funkce vstupu IN4</legend>
               <div style="margin:auto">
-                <input type="radio" id="rbtInputs4_1" name="prepinp" onclick="setInputFunc(this)" value="all">
+                <input type="radio" id="rbtInputs4_1" name="prepInMode4" onclick="setInputFunc(this)" value="all">
                 <label for="rbtInputs4_1">trvale</label>
-                <input type="radio" id="rbtInputs4_2" name="prepinp" onclick="setInputFunc(this)" value="false">
+                <input type="radio" id="rbtInputs4_2" name="prepInMode4" onclick="setInputFunc(this)" value="false">
                 <label for="rbtInputs4_2">puls</label>
-                <input type="radio" id="rbtInputs4_3" name="prepinp" onclick="setInputFunc(this)" value="true">
+                <input type="radio" id="rbtInputs4_3" name="prepInMode2" onclick="setInputFunc(this)" value="true">
                 <label for="rbtInputs4_3">časovač</label>
               </div>
             </fieldset>
@@ -1181,6 +1343,8 @@
                 <label for="rbtI4_3">out 1</label>
                 <input type="radio" id="rbtI4_4" name="prepInp4" onclick="OutputSelect(this)" value="true">
                 <label for="rbtI4_4">out 2</label>
+                <input type="radio" id="rbtI4_5" name="prepInp4" onclick="OutputSelect(this)" value="true">
+                <label for="rbtI4_5">RST</label>
               </div>
             </fieldset>
           </form>
