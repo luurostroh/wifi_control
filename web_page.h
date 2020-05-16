@@ -139,8 +139,9 @@ char webpage[] PROGMEM = R"=====(
       font-size: 30px;
     }
 
-    #tempLabel {
-      font-size: 43px;
+    .adcLabel,
+    tempLabel {  
+    font-size: 43px;
     }
 
     .tmrLabel {
@@ -443,7 +444,15 @@ char webpage[] PROGMEM = R"=====(
                break;                         
         }
       }
-    
+
+    if(event.data[1]=='A'){
+      a_val = event.data.substring(2);
+      document.getElementById("adcValLabel").innerHTML = a_val;
+    }
+    if(event.data[1]=='T'){
+      var t_val = event.data.substring(2);
+      document.getElementById("tempLabel1").innerHTML = t_val;
+    }
       SortData(event.data);
     }
     document.getElementById("defaultOpen").click();
@@ -469,7 +478,7 @@ char webpage[] PROGMEM = R"=====(
     document.getElementById("out4").style.backgroundColor = recOutp[3] == '1' ? "#ffc107" : "gray";
 
     //teplota 
-    document.getElementById("tempLabel").value = msg.substring(msg.indexOf('t') + 1, msg.indexOf('T'));
+    document.getElementById("tempLabel1").value = msg.substring(msg.indexOf('t') + 1, msg.indexOf('T'));
 
     //termostat
     var teploty = document.getElementsByClassName("setTemp");
@@ -1059,9 +1068,13 @@ function SetActualTime()
         </table>
         <div class="space">
           <div style="margin-top:75px;">
-            <span id="tempLabel" style="width:50px;height:30px;margin-top:20px; ">Teplota </span>
-            <span id="tempLabel" style="width:50px;height:30px;margin-top:20px;"">23</span>
-            <span id=" tempLabel" style="width:50px;height:30px;margin-top:20px;""> °C</span>
+            <span  class="tempLabel" id="tempLabel0" style="width:50px;height:30px;margin-top:20px; ">Teplota </span>
+            <span class="tempLabel" id="tempLabel1"  style="width:50px;height:30px;margin-top:20px;">23</span>
+            <span class="tempLabel" id=" tempLabel2" style="width:50px;height:30px;margin-top:20px;"> °C</span>
+          </div>
+          <div style="margin-top:75px;">
+            <span class="adcLabel" id="adcLabel1" style="width:50px;height:30px;margin-top:20px; ">Analogový vstup </span>
+            <span class="adcLabel" id="adcValLabel" style="width:50px;height:30px;margin-top:20px;">0</span>
           </div>
         </div>
         <div style=" margin: auto;">

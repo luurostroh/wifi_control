@@ -11,10 +11,11 @@
 #define DBG
 // test 3
 
-OneWire oneWire(D8);                 // inicializace OneWire
+OneWire oneWire(D6);                 // inicializace OneWire
 DallasTemperature ds18b20(&oneWire); // vytvo�en� objektu �idla teploty
 
 uint64 rtc_counter;
+uint64 out_timer;
 #pragma region IO setting
 
 typedef struct
@@ -33,9 +34,10 @@ typedef struct
 } Output;
 Output Outputs[4];
 
-uint8_t outs[4] = {D0, D12, D11, D10};
+uint8_t outs[4] = { D12, D11, D10,D8};
 #pragma endregion
 int dataLenght;
+
 ESP8266WebServer server;
 WebSocketsServer webSocket = WebSocketsServer(81);
 typedef struct
@@ -67,12 +69,16 @@ Output spinackyOut;
 typedef struct
 {
   int8_t mode;
-  Output assoc_out;
+  Output* assoc_out;
   uint16_t time;
 } IOctrlStruct;
 
 IOctrlStruct IO_controls[4];
 
+uint16 old_adc_val;
+uint16 adc_val;
+uint16_t old_temperature;
+uint16_t temperature;
 uint16_t minutes;
 char *ssid = "MujNet";
 char *password = "hesloludek";
@@ -83,8 +89,11 @@ void setup()
 {
   EEPROM.begin(512);
   SetIO();
+  ds18b20.begin();
   WiFi.begin(ssid, password);
   Serial.begin(115200);
+  int numofdallas = ds18b20.getDeviceCount();
+  Serial.print("pocet dallasu:");Serial.println(numofdallas);
   while (WiFi.status() != WL_CONNECTED)
   {
     Serial.print(".");
@@ -108,53 +117,58 @@ unsigned long counter;
 void loop()
 {
 
-  //cas
-  if (millis() > counter)
-  {
-    counter = millis() + 1000;
-    if (++rtc_counter % 60 == 0)
-      minutes++;
+ //cas
+ if (millis() > counter)
+ {
+   ReadAdc();
+   Termostat();
+   counter = millis() + 1000;
+   if (++rtc_counter % 60 == 0)
+     minutes++;
 #ifdef DBG
-    char buff[10];
+    char buff[28];
     sprintf(buff, "%02u:%02u:%02u", minutes / 60, minutes % 60, rtc_counter % 60);
     Serial.println(buff);
 #endif
-  }
+ }
 
-  ///spinacky
-  if (spinackyOut.num != 0)
-    Spinacky();
-  //termostat
-  if (termostatOut.num != 0)
-    Termostat();
-  //web
-  webSocket.loop();
-  server.handleClient();
-  TestVstupu();
+ //   ///spinacky
+ if (spinackyOut.num != 0)
+   Spinacky();
+ //   //termostat
+ //   if (termostatOut.num != 0)
+ //     Termostat();
+ //web
+ webSocket.loop();
+ server.handleClient();
+ TestVstupu();
 }
 
 void TestVstupu()
 {
 
-  static uint64_t out_timer;
+  
   for (size_t i = 0; i < 4; i++)
   {
     //kontrola jestli je seply casovany vystup
     if (IO_controls[i].mode == 2 && out_timer > 0)
     {
-      if (IO_controls[i].assoc_out.last_state == HIGH)
+      if (IO_controls[i].assoc_out->last_state == HIGH)
       {
-        if ((millis() / 1000) > out_timer)
-          ChangeOutput(IO_controls[i].assoc_out, LOW);
+        if (millis()  > out_timer)
+        {
+        ChangeOutput(IO_controls[i].assoc_out, LOW);
         out_timer = 0;
+        }
+       
       }
     }
 
-    if (digitalRead(Inputs[i].num))
+    if (!digitalRead(Inputs[i].num))
     {
       if (Inputs[i].last_state != 1)
       {
-        sprintf(msg, "#I%d%s", Inputs[i].id, Inputs[i].last_state == 1 ? "on" : "of");
+        sprintf(msg, "#I%don", Inputs[i].id);
 #ifdef DBG
         Serial.println(msg);
 #endif
@@ -164,11 +178,18 @@ void TestVstupu()
           ChangeOutput(IO_controls[i].assoc_out, HIGH);
         else if (IO_controls[i].mode == 1)
         {
-          ChangeOutput(IO_controls[i].assoc_out, ~IO_controls[i].assoc_out.last_state);
+#ifdef DBG
+        Serial.println("mode1");
+#endif          
+          if(IO_controls[i].assoc_out->last_state == 0){ChangeOutput(IO_controls[i].assoc_out,HIGH);}
+          else {ChangeOutput(IO_controls[i].assoc_out,LOW);}
         }
         else if (IO_controls[i].mode == 2)
         {
-          out_timer = millis() + IO_controls[i].time;
+#ifdef DBG
+        Serial.println("mode2");
+#endif             
+          out_timer = millis() + (IO_controls[i].time * 1000);
           ChangeOutput(IO_controls[i].assoc_out, HIGH);
         }
       }
@@ -178,7 +199,7 @@ void TestVstupu()
     {
       if (Inputs[i].last_state != 0)
       {
-        sprintf(msg, "#I%d%s", Inputs[i].id, Inputs[i].last_state == 1 ? "on" : "of");
+        sprintf(msg, "#I%dof", Inputs[i].id);
 #ifdef DBG
         Serial.println(msg);
 #endif
@@ -193,6 +214,20 @@ void TestVstupu()
 
 void ReadTemp()
 {
+  char msg[10];
+  ds18b20.requestTemperatures();
+  float t = ds18b20.getTempCByIndex(0);
+  temperature = (uint16_t)(t * 10);
+  if (old_temperature != temperature)
+  {
+    old_temperature = temperature;
+    sprintf(msg, "#T%02u,%1u", temperature/10,temperature%10);
+    webSocket.broadcastTXT(msg, 6);
+
+#ifdef DBG  
+  Serial.print(t);
+#endif  
+  }
 }
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 {
@@ -338,7 +373,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 #endif
       IO_controls[0].mode = sub.substring(0, sub.indexOf('_')).toInt();
       idx = sub.substring(sub.indexOf('_') + 1, sub.indexOf('|')).toInt();
-      IO_controls[0].assoc_out.num = outs[idx];
+      IO_controls[0].assoc_out = &Outputs[idx];
       IO_controls[0].time = sub.substring(sub.indexOf('|') + 1).toInt();
       //IO nastaveni 2
       sub = data.substring(delimiters[14] + 1, delimiters[15]);
@@ -347,7 +382,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 #endif
       IO_controls[1].mode = sub.substring(0, sub.indexOf('_')).toInt();
       idx =  sub.substring(sub.indexOf('_') + 1, sub.indexOf('|')).toInt();
-      IO_controls[1].assoc_out.num = outs[idx];
+      IO_controls[1].assoc_out = &Outputs[idx];
       IO_controls[1].time = sub.substring(sub.indexOf('|') + 1).toInt();
       //IO nastaveni 1
       sub = data.substring(delimiters[15] + 1, delimiters[16]);
@@ -356,7 +391,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 #endif
       IO_controls[2].mode = sub.substring(0, sub.indexOf('_')).toInt();
       idx = sub.substring(sub.indexOf('_') + 1, sub.indexOf('|')).toInt();
-      IO_controls[2].assoc_out.num = outs[idx];
+      IO_controls[2].assoc_out = &Outputs[idx];
       IO_controls[2].time = sub.substring(sub.indexOf('|') + 1).toInt();
       //IO nastaveni 1
       sub = data.substring(delimiters[16] + 1, delimiters[17]);
@@ -365,7 +400,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 #endif
       IO_controls[3].mode = sub.substring(0, sub.indexOf('_')).toInt();
       idx = sub.substring(sub.indexOf('_') + 1, sub.indexOf('|')).toInt();
-      IO_controls[3].assoc_out.num = outs[idx];
+      IO_controls[3].assoc_out = &Outputs[idx];
       IO_controls[3].time = sub.substring(sub.indexOf('|') + 1).toInt();
       PushToEeprom();
       PullFromEeprom();
@@ -383,39 +418,44 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
       {
       case '1':
         if (payload[5] == 'n')
-          ChangeOutput(Outputs[0], HIGH);
+          ChangeOutput(&Outputs[0], HIGH);
         else
-          ChangeOutput(Outputs[0], LOW);
+          ChangeOutput(&Outputs[0], LOW);
         break;
 
       case '2':
         if (payload[5] == 'n')
-          ChangeOutput(Outputs[1], HIGH);
+          ChangeOutput(&Outputs[1], HIGH);
         else
-          ChangeOutput(Outputs[1], LOW);
+          ChangeOutput(&Outputs[1], LOW);
         break;
 
       case '3':
         if (payload[5] == 'n')
-          ChangeOutput(Outputs[2], HIGH);
+          ChangeOutput(&Outputs[2], HIGH);
         else
-          ChangeOutput(Outputs[2], LOW);
+          ChangeOutput(&Outputs[2], LOW);
         break;
 
       case '4':
         if (payload[5] == 'n')
-          ChangeOutput(Outputs[3], HIGH);
+          ChangeOutput(&Outputs[3], HIGH);
         else
-          ChangeOutput(Outputs[3], LOW);
+          ChangeOutput(&Outputs[3], LOW);
         break;
       default:
         break;
       }
+
+#ifdef DBG
+  Serial.print(Outputs[0].last_state);Serial.print(Outputs[1].last_state);Serial.print(Outputs[2].last_state);Serial.println(Outputs[3].last_state);
+#endif      
     }
   }
 }
 
 boolean outSpinIsSetOn = false, outSpinIsSetOff = false;
+boolean outTermIsSetOn = false, outTermIsSetOff = false;
 
 void Spinacky()
 {
@@ -431,7 +471,7 @@ void Spinacky()
       {
         outSpinIsSetOn = true;
         outSpinIsSetOff = false;
-        ChangeOutput(spinackyOut, HIGH);
+        ChangeOutput(&spinackyOut, HIGH);
       }
     }
     else if (spinackyTable[i].casOff == minutes)
@@ -440,7 +480,7 @@ void Spinacky()
       {
         outSpinIsSetOff = true;
         outSpinIsSetOn = false;
-        ChangeOutput(spinackyOut, LOW);
+        ChangeOutput(&spinackyOut, LOW);
       };
     }
   }
@@ -448,6 +488,53 @@ void Spinacky()
 
 void Termostat()
 {
+  uint8_t pom_i;
+  ReadTemp();
+  for (size_t i = 0; i < 4; i++)
+  {
+    pom_i = i + 1;
+    if(i ==3)
+      pom_i = 0;
+    if (minutes >= termostatTable[i].cas && minutes < termostatTable[pom_i].cas)
+    {
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.print(termostatTable[i].cas);
+      Serial.print("-");Serial.print(minutes);
+     Serial.print("-/-");
+
+          Serial.print(termostatTable[i].teplota);
+      Serial.print("-");Serial.print(temperature);
+    if (temperature < (termostatTable[i].teplota-5))
+    {
+      if(outTermIsSetOn == false)
+      {
+        outTermIsSetOn = true;
+        outTermIsSetOff = false;
+        ChangeOutput(&termostatOut, HIGH);
+ #ifdef DBG       
+        Serial.println(" tstaton");
+ #endif
+      }
+    }
+
+    else if (temperature >= termostatTable[i].teplota)
+    {
+      if(outTermIsSetOff == false)
+      {
+        outTermIsSetOn = false;
+        outTermIsSetOff = true;
+        ChangeOutput(&termostatOut, LOW);
+ #ifdef DBG       
+        Serial.println(" tstatoff");
+ #endif        
+      }
+    }
+    break;
+    }
+}
+
+
 }
 
 void PushToEeprom()
@@ -528,7 +615,7 @@ void PullFromEeprom()
   {
     Serial.print(IO_controls[i].mode);
     Serial.print("-");
-    Serial.print(IO_controls[i].assoc_out.num);
+    Serial.print(IO_controls[i].assoc_out->num);
     Serial.print("-");
     Serial.println(IO_controls[i].time);
   }
@@ -541,29 +628,33 @@ void DataToPage()
   //webSocket.broadcastTXT(c, sizeof(c));
 }
 
-void ChangeOutput(Output _out, uint8_t val)
+void ChangeOutput(Output *_out, uint8_t val)
 {
-  char msg[6];
-  sprintf(msg, "#O%d%s", _out.id, val == 1 ? "on" : "of");
+  uint8_t x = _out->id;
+   char msg[10];
+   sprintf(msg, "#O%d%s", _out->id, val == 1 ? "on" : "of");
 #ifdef DBG
   Serial.println(msg);
-
 #endif
-  digitalWrite(_out.num, val);
-  _out.last_state = val;
-  webSocket.broadcastTXT(msg, 5);
+ _out->last_state = val;
+  digitalWrite(_out->num, val);
+#ifdef DBG
+  Serial.println(_out->last_state);
+#endif
+   webSocket.broadcastTXT(msg, 5);
 }
 
 void SetIO()
 {
+  //pinMode(D2, INPUT);
+  pinMode(D2, INPUT_PULLUP);
   pinMode(D3, INPUT_PULLUP);
   pinMode(D4, INPUT_PULLUP);
-  pinMode(D5, INPUT_PULLUP);
 
-  pinMode(D10, OUTPUT);
+  pinMode(D13, OUTPUT);
   pinMode(D11, OUTPUT);
-  pinMode(D12, OUTPUT);
-  pinMode(D0, OUTPUT);
+  //pinMode(D12, OUTPUT);
+  pinMode(D10, OUTPUT);
 
   Inputs[0].num = D2;
   Inputs[0].last_state = 0;
@@ -574,19 +665,39 @@ void SetIO()
   Inputs[2].num = D4;
   Inputs[2].last_state = 0;
   Inputs[2].id = 3;
-  Inputs[3].num = D5;
+  Inputs[3].num = D4;
   Inputs[3].last_state = 0;
   Inputs[3].id = 4;
-  Outputs[0].num = D0;
+  Outputs[0].num = D13;
   Outputs[0].id = 1;
   Outputs[0].last_state = 0;
-  Outputs[1].num = D12;
+  Outputs[1].num = D11;
   Outputs[1].id = 2;
   Outputs[1].last_state = 0;
-  Outputs[2].num = D11;
+  Outputs[2].num = D10;
   Outputs[2].id = 3;
   Outputs[2].last_state = 0;
-  Outputs[3].num = D10;
+  Outputs[3].num = D0;
   Outputs[3].id = 4;
   Outputs[3].last_state = 0;
+  IO_controls[0].assoc_out = &Outputs[0];
+  IO_controls[1].assoc_out = &Outputs[1];
+  IO_controls[2].assoc_out = &Outputs[2];
+  IO_controls[3].assoc_out = &Outputs[3];
+}
+
+void ReadAdc()
+{
+  char msg[10];
+  adc_val = analogRead(A0);
+  if(old_adc_val != adc_val)
+  {
+    old_adc_val = adc_val;
+    sprintf(msg, "#A%04u", adc_val);
+    webSocket.broadcastTXT(msg, 6);
+// #ifdef DBG
+//   Serial.println(msg);
+// #endif
+  }
+
 }
