@@ -11,7 +11,7 @@
 #define DBG
 // test 3
 
-OneWire oneWire(D6);                 // inicializace OneWire
+OneWire oneWire(D9);                 // inicializace OneWire
 DallasTemperature ds18b20(&oneWire); // vytvo�en� objektu �idla teploty
 
 uint64 rtc_counter;
@@ -34,7 +34,7 @@ typedef struct
 } Output;
 Output Outputs[4];
 
-uint8_t outs[4] = { D12, D11, D10,D8};
+uint8_t outs[4] = { D13, D12, D11,D10};
 #pragma endregion
 int dataLenght;
 
@@ -73,7 +73,7 @@ typedef struct
   uint16_t time;
 } IOctrlStruct;
 
-IOctrlStruct IO_controls[4];
+IOctrlStruct IO_controls[3];
 
 uint16 old_adc_val;
 uint16 adc_val;
@@ -148,7 +148,7 @@ void TestVstupu()
 {
 
   
-  for (size_t i = 0; i < 4; i++)
+  for (size_t i = 0; i < 3; i++)
   {
     //kontrola jestli je seply casovany vystup
     if (IO_controls[i].mode == 2 && out_timer > 0)
@@ -652,8 +652,8 @@ void SetIO()
   pinMode(D4, INPUT_PULLUP);
 
   pinMode(D13, OUTPUT);
+  pinMode(D12, OUTPUT);
   pinMode(D11, OUTPUT);
-  //pinMode(D12, OUTPUT);
   pinMode(D10, OUTPUT);
 
   Inputs[0].num = D2;
@@ -665,25 +665,25 @@ void SetIO()
   Inputs[2].num = D4;
   Inputs[2].last_state = 0;
   Inputs[2].id = 3;
-  Inputs[3].num = D4;
-  Inputs[3].last_state = 0;
-  Inputs[3].id = 4;
+  // Inputs[3].num = D4;
+  // Inputs[3].last_state = 0;
+  // Inputs[3].id = 4;
   Outputs[0].num = D13;
   Outputs[0].id = 1;
   Outputs[0].last_state = 0;
-  Outputs[1].num = D11;
+  Outputs[1].num = D12;
   Outputs[1].id = 2;
   Outputs[1].last_state = 0;
-  Outputs[2].num = D10;
+  Outputs[2].num = D11;
   Outputs[2].id = 3;
   Outputs[2].last_state = 0;
-  Outputs[3].num = D0;
+  Outputs[3].num = D10;
   Outputs[3].id = 4;
   Outputs[3].last_state = 0;
   IO_controls[0].assoc_out = &Outputs[0];
   IO_controls[1].assoc_out = &Outputs[1];
   IO_controls[2].assoc_out = &Outputs[2];
-  IO_controls[3].assoc_out = &Outputs[3];
+  // IO_controls[3].assoc_out = &Outputs[3];
 }
 
 void ReadAdc()
