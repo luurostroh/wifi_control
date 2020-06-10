@@ -93,7 +93,7 @@ void setup()
   WiFi.begin(ssid, password);
   Serial.begin(115200);
   int numofdallas = ds18b20.getDeviceCount();
-  Serial.print("pocet dallasu:");Serial.println(numofdallas);
+ 
   while (WiFi.status() != WL_CONNECTED)
   {
     Serial.print(".");
@@ -102,7 +102,7 @@ void setup()
   Serial.println("");
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
-
+  Serial.print("pocet dallasu:");Serial.println(numofdallas);
   server.on("/", []() {
     server.send_P(200, "text/html", webpage);
   });
@@ -259,12 +259,17 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 #endif
         }
       }
+if(payload[1] == 'S')
+{
+  DataToPage();
+  return;
+}
 
-      if (payload[1] == 'T')
-      {
-        String tstamp = data.substring(delimiters[0] + 1, delimiters[1]);
-        minutes = tstamp.toInt();
-        rtc_counter = minutes * 60;
+if (payload[1] == 'T')
+{
+  String tstamp = data.substring(delimiters[0] + 1, delimiters[1]);
+  minutes = tstamp.toInt();
+  rtc_counter = minutes * 60;
 
 #ifdef DBG
         char buf[15];
@@ -398,10 +403,10 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 #ifdef DBG
       Serial.println(sub);
 #endif
-      IO_controls[3].mode = sub.substring(0, sub.indexOf('_')).toInt();
-      idx = sub.substring(sub.indexOf('_') + 1, sub.indexOf('|')).toInt();
-      IO_controls[3].assoc_out = &Outputs[idx];
-      IO_controls[3].time = sub.substring(sub.indexOf('|') + 1).toInt();
+      // IO_controls[3].mode = sub.substring(0, sub.indexOf('_')).toInt();
+      // idx = sub.substring(sub.indexOf('_') + 1, sub.indexOf('|')).toInt();
+      // IO_controls[3].assoc_out = &Outputs[idx];
+      // IO_controls[3].time = sub.substring(sub.indexOf('|') + 1).toInt();
       PushToEeprom();
       PullFromEeprom();
     }
@@ -540,43 +545,47 @@ void Termostat()
 void PushToEeprom()
 {
 #ifdef DBG
-  Serial.println();
+  Serial.println("push EE");
 #endif
   int start_point = 0;
   EEPROM.put(start_point, termostatTable);
-  start_point += sizeof(termostatTable);
+  start_point += 16;//sizeof(termostatTable);
+delay(10);
 #ifdef DBG
   Serial.print(start_point);
   Serial.print(">");
 #endif
   EEPROM.put(start_point, spinackyTable);
-  start_point += sizeof(spinackyTable);
+ delay(10);  
+  start_point += 16;//sizeof(spinackyTable);
 #ifdef DBG
   Serial.print(start_point);
   Serial.print(">");
 #endif
   EEPROM.put(start_point, termostatOut);
+  delay(10);
   start_point += sizeof(Output);
-  Serial.print(start_point);
 #ifdef DBG
-  Serial.println(">");
+  Serial.print(start_point);
+  Serial.print(">");
 #endif
   EEPROM.put(start_point, spinackyOut);
+  delay(10);
   start_point += sizeof(Output);
-  Serial.print(start_point);
 #ifdef DBG
-  Serial.println(">");
+  Serial.println(start_point);
 #endif
   EEPROM.put(start_point, IO_controls);
+  delay(10);
 }
 
 void PullFromEeprom()
 {
 #ifdef DBG
-  Serial.print("EE? ");
+  Serial.print("pull EE? ");
 #endif
   uint8_t c;
-  for (int i = 0; i < 34; i++)
+  for (int i = 0; i < 46; i++)
   {
     c = EEPROM.read(i);
 #ifdef DBG
@@ -595,6 +604,8 @@ void PullFromEeprom()
   start_point += sizeof(Output);
   EEPROM.get(start_point, IO_controls);
 #ifdef DBG
+//Serial.print("data");
+//DataToPage();
   Serial.println();
   for (int i = 0; i < 4; i++)
   {
@@ -611,7 +622,7 @@ void PullFromEeprom()
   Serial.print(termostatOut.num);
   Serial.print("x");
   Serial.println(spinackyOut.num);
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 3; i++)
   {
     Serial.print(IO_controls[i].mode);
     Serial.print("-");
@@ -624,8 +635,52 @@ void PullFromEeprom()
 
 void DataToPage()
 {
-
-  //webSocket.broadcastTXT(c, sizeof(c));
+//&#T*200_60*200_120*200_180*200_240*#S*60_120*180_240*300_360*420_480*#O*0*1*#IO*0_2|0*1_3|0*-1_-1|0*
+String send_data = "&S*";
+send_data += String(termostatTable[0].cas) + "_";
+send_data += String(termostatTable[0].teplota)+ "*";
+send_data += String(termostatTable[1].cas) + "_";
+send_data += String(termostatTable[1].teplota)+ "*";
+send_data += String(termostatTable[2].cas) + "_";
+send_data += String(termostatTable[3].teplota)+ "*";
+send_data += String(termostatTable[3].cas) + "_";
+send_data += String(termostatTable[3].teplota)+ "*#S*";
+send_data += String(spinackyTable[0].casOn) + "_";
+send_data += String(spinackyTable[0].casOff)+ "*";
+send_data += String(spinackyTable[1].casOn) + "_";
+send_data += String(spinackyTable[1].casOff)+ "*";
+send_data += String(spinackyTable[2].casOn) + "_";
+send_data += String(spinackyTable[2].casOff)+ "*";
+send_data += String(spinackyTable[3].casOn) + "_";
+send_data += String(spinackyTable[3].casOff)+ "*#O*";
+sint8_t j = 0;
+for (size_t i = 0; i < 4; i++)if(outs[i] == termostatOut.num )j=i;
+send_data += String(j)+ "*";
+j = 0;
+for (size_t i = 0; i < 4; i++)if(outs[i] == spinackyOut.num )j=i;
+send_data += String(j)+ "*#IO*";
+send_data += String(IO_controls[0].mode)+ "_"; 
+j = -1;
+for (size_t i = 0; i < 4; i++)if(IO_controls[0].assoc_out == Outputs + i )j=i;
+send_data += String(j)+ "|";
+send_data += String(IO_controls[0].time)+ "*";
+send_data += String(IO_controls[1].mode)+ "_";
+j = -1;
+for (size_t i = 0; i < 4; i++)if(IO_controls[1].assoc_out == Outputs + i )j=i;
+send_data += String(j)+ "|";
+send_data += String(IO_controls[1].time)+ "*";
+send_data += String(IO_controls[2].mode)+ "_";
+j = -1;
+for (size_t i = 0; i < 4; i++)if(IO_controls[2].assoc_out == Outputs + i )j=i;
+send_data += String(j)+ "|";
+send_data += String(IO_controls[2].time)+ "*";
+#ifdef DBG
+Serial.println("topage");
+Serial.println(send_data);
+#endif
+char msg[sizeof(send_data)];
+send_data.toCharArray(msg, sizeof(send_data));
+webSocket.broadcastTXT(msg, sizeof(msg));
 }
 
 void ChangeOutput(Output *_out, uint8_t val)
@@ -694,7 +749,7 @@ void ReadAdc()
   {
     old_adc_val = adc_val;
     sprintf(msg, "#A%04u", adc_val);
-    webSocket.broadcastTXT(msg, 6);
+  //  webSocket.broadcastTXT(msg, 6);
 // #ifdef DBG
 //   Serial.println(msg);
 // #endif

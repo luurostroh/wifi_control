@@ -442,11 +442,16 @@
       var t_val = event.data.substring(2);
       document.getElementById("tempLabel1").innerHTML = t_val;
     }
+    if(event.data[1]=='S'){
       SortData(event.data);
+    }
     }
     document.getElementById("defaultOpen").click();
   }
 
+ function getData(){
+  Socket.send("&S");
+ }
 
   function SortData(msg) {
     //rozsekat zpravu
@@ -550,13 +555,13 @@
     message += idx4.toString()+ "|";
     message += ToSeconds(IOtimers[2].value) + "*";
     //IO 4
-    const indexMode4 = Array.from(document.getElementsByName("prepInMode4"));
-    const idxMode4 = indexMode4.findIndex(x => x.checked == true);
-    message +=  idxMode4.toString() + "_";
-    const outindex5 = Array.from(document.getElementsByName("prepInp4"));
-    const idx5 = outindex5.findIndex(x => x.checked == true);
-    message +=  idx5.toString()+ "|";
-    message += ToSeconds(IOtimers[3].value) + "*";
+    // const indexMode4 = Array.from(document.getElementsByName("prepInMode4"));
+    // const idxMode4 = indexMode4.findIndex(x => x.checked == true);
+    // message +=  idxMode4.toString() + "_";
+    // const outindex5 = Array.from(document.getElementsByName("prepInp4"));
+    // const idx5 = outindex5.findIndex(x => x.checked == true);
+    // message +=  idx5.toString()+ "|";
+    // message += ToSeconds(IOtimers[3].value) + "*";
     Socket.send(message);
   }
 
@@ -635,7 +640,7 @@ function SetActualTime()
     var radioInp1 = document.getElementsByName("prepInp1");
     var radioInp2 = document.getElementsByName("prepInp2");
     var radioInp3 = document.getElementsByName("prepInp3");
-    var radioInp4 = document.getElementsByName("prepInp4");
+   // var radioInp4 = document.getElementsByName("prepInp4");
     var labels = document.getElementsByClassName("label");
     var descripts = ["relé 1", "relé 2", "out 1", "out 2"];
 
@@ -655,8 +660,8 @@ function SetActualTime()
             radioInp2[ii].labels[0].innerText = descripts[ii];
             radioInp3[ii].disabled = false;
             radioInp3[ii].labels[0].innerText = descripts[ii];
-            radioInp4[ii].disabled = false;
-            radioInp4[ii].labels[0].innerText = descripts[ii];
+          //  radioInp4[ii].disabled = false;
+          //  radioInp4[ii].labels[0].innerText = descripts[ii];
           }
         }
         selectedOut.checked = false;
@@ -676,8 +681,8 @@ function SetActualTime()
           radioInp2[i].labels[0].innerText = "";
           radioInp3[i].disabled = true;
           radioInp3[i].labels[0].innerText = "";
-          radioInp4[i].disabled = true;
-          radioInp4[i].labels[0].innerText = "";
+         // radioInp4[i].disabled = true;
+         // radioInp4[i].labels[0].innerText = "";
 
 
         }
@@ -692,8 +697,8 @@ function SetActualTime()
             radioInp2[i].labels[0].innerText = descripts[i];
             radioInp3[i].disabled = false;
             radioInp3[i].labels[0].innerText = descripts[i];
-            radioInp4[i].disabled = false;
-            radioInp4[i].labels[0].innerText = descripts[i];
+          //radioInp4[i].disabled = false;
+          // radioInp4[i].labels[0].innerText = descripts[i];
           }
           // if (labels[i].innerText != "spinacky") labels[i].innerText = "";
         }
@@ -717,8 +722,8 @@ function SetActualTime()
             radioInp2[ii].labels[0].innerText = descripts[ii];
             radioInp3[ii].disabled = false;
             radioInp3[ii].labels[0].innerText = descripts[ii];
-            radioInp4[ii].disabled = false;
-            radioInp4[ii].labels[0].innerText = descripts[ii];
+            //radioInp4[ii].disabled = false;
+            //radioInp4[ii].labels[0].innerText = descripts[ii];
           }
         }
         selectedOut.checked = false;
@@ -918,57 +923,57 @@ function SetActualTime()
       }
     }
     //karta IN 4
-    if (selectedOut.name == "prepInp4") {
-      //reset
-      if (selectedOut.id == "rbtI4_5") {
-        for (ii = 0; ii < radioSpin.length - 1; ii++) {
-          if (labels[ii].innerText == "IN 4") {
-            labels[ii].innerText = "";
-            radioTstat[ii].disabled = false;
-            radioTstat[ii].labels[0].innerText = descripts[ii];
-            radioSpin[ii].disabled = false;
-            radioSpin[ii].labels[0].innerText = descripts[ii];
-            radioInp1[ii].disabled = false;
-            radioInp1[ii].labels[0].innerText = descripts[ii];
-            radioInp2[ii].disabled = false;
-            radioInp2[ii].labels[0].innerText = descripts[ii];
-            radioInp3[ii].disabled = false;
-            radioInp3[ii].labels[0].innerText = descripts[ii];
-          }
-        }
-        selectedOut.checked = false;
-      }
-      for (i = 0; i < radioInp4.length - 1; i++) {
-        if (labels[i].innerText == "IN 4") labels[i].innerText = "";
-        if (radioInp4[i].checked == true) {
-          labels[i].innerText = "IN 4";
-          radioSpin[i].disabled = true;
-          radioSpin[i].labels[0].innerText = "";
-          radioTstat[i].disabled = true;
-          radioTstat[i].labels[0].innerText = "";
-          radioInp1[i].disabled = true;
-          radioInp1[i].labels[0].innerText = "";
-          radioInp2[i].disabled = true;
-          radioInp2[i].labels[0].innerText = "";
-          radioInp3[i].disabled = true;
-          radioInp3[i].labels[0].innerText = "";
-        }
-        else {
-          if (labels[i].innerText == "") {
-            radioSpin[i].disabled = false;
-            radioSpin[i].labels[0].innerText = descripts[i];
-            radioTstat[i].disabled = false;
-            radioTstat[i].labels[0].innerText = descripts[i];
-            radioInp1[i].disabled = false;
-            radioInp1[i].labels[0].innerText = descripts[i];
-            radioInp2[i].disabled = false;
-            radioInp2[i].labels[0].innerText = descripts[i];
-            radioInp3[i].disabled = false;
-            radioInp3[i].labels[0].innerText = descripts[i];
-          }
-        }
-      }
-    }
+    // if (selectedOut.name == "prepInp4") {
+    //   //reset
+    //   if (selectedOut.id == "rbtI4_5") {
+    //     for (ii = 0; ii < radioSpin.length - 1; ii++) {
+    //       if (labels[ii].innerText == "IN 4") {
+    //         labels[ii].innerText = "";
+    //         radioTstat[ii].disabled = false;
+    //         radioTstat[ii].labels[0].innerText = descripts[ii];
+    //         radioSpin[ii].disabled = false;
+    //         radioSpin[ii].labels[0].innerText = descripts[ii];
+    //         radioInp1[ii].disabled = false;
+    //         radioInp1[ii].labels[0].innerText = descripts[ii];
+    //         radioInp2[ii].disabled = false;
+    //         radioInp2[ii].labels[0].innerText = descripts[ii];
+    //         radioInp3[ii].disabled = false;
+    //         radioInp3[ii].labels[0].innerText = descripts[ii];
+    //       }
+    //     }
+    //     selectedOut.checked = false;
+    //   }
+    //   for (i = 0; i < radioInp4.length - 1; i++) {
+    //     if (labels[i].innerText == "IN 4") labels[i].innerText = "";
+    //     if (radioInp4[i].checked == true) {
+    //       labels[i].innerText = "IN 4";
+    //       radioSpin[i].disabled = true;
+    //       radioSpin[i].labels[0].innerText = "";
+    //       radioTstat[i].disabled = true;
+    //       radioTstat[i].labels[0].innerText = "";
+    //       radioInp1[i].disabled = true;
+    //       radioInp1[i].labels[0].innerText = "";
+    //       radioInp2[i].disabled = true;
+    //       radioInp2[i].labels[0].innerText = "";
+    //       radioInp3[i].disabled = true;
+    //       radioInp3[i].labels[0].innerText = "";
+    //     }
+    //     else {
+    //       if (labels[i].innerText == "") {
+    //         radioSpin[i].disabled = false;
+    //         radioSpin[i].labels[0].innerText = descripts[i];
+    //         radioTstat[i].disabled = false;
+    //         radioTstat[i].labels[0].innerText = descripts[i];
+    //         radioInp1[i].disabled = false;
+    //         radioInp1[i].labels[0].innerText = descripts[i];
+    //         radioInp2[i].disabled = false;
+    //         radioInp2[i].labels[0].innerText = descripts[i];
+    //         radioInp3[i].disabled = false;
+    //         radioInp3[i].labels[0].innerText = descripts[i];
+    //       }
+    //    }
+    //   }
+    // }
   }
 
   function openSubPage(pageName, elmnt, color) {
@@ -1070,7 +1075,7 @@ function SetActualTime()
               <button type="button" class="btn  btn-lg" id="in1">IN 1</button>
               <button type="button" class="btn  btn-lg" id="in2">IN 2</button>
               <button type="button" class="btn  btn-lg" id="in3">IN 3</button>
-              <button type="button" class="btn  btn-lg" id="in4">IN 4</button>
+              <!--button type="button" class="btn  btn-lg" id="in4">IN 4</button-->
           </div>
           <div>
             <button type="button"  id="btnSetTime" onclick="SetActualTime()" style="margin-top:50px;" > Nastav aktuální čas</button>
@@ -1146,6 +1151,7 @@ function SetActualTime()
         </form>
         <div>
           <button type="submit" onclick="SaveData()">ULOŽIT</button>
+          <button type="submit" onclick="getData()">NAČÍST</button>
         </div>
       </div>
       <div id="spinacky" class="tabcontent">
@@ -1215,13 +1221,14 @@ function SetActualTime()
         </form>
         <div>
           <button type="submit" onclick="SaveData()">ULOŽIT</button>
+          <button type="submit" onclick="getData()">NAČÍST</button>
         </div>
       </div>
       <div id="nastaveni" class="tabcontent">
         <button class="tablink2" id="defaultOpen" onclick="openSubPage('inp1div', this, 'lightgreen')">IN 1</button>
         <button class="tablink2" onclick="openSubPage('inp2div', this, 'lightgreen')">IN 2</button>
         <button class="tablink2" onclick="openSubPage('inp3div', this, 'lightgreen')">IN 3</button>
-        <button class="tablink2" onclick="openSubPage('inp4div', this, 'lightgreen')">IN 4</button>
+        <!--button class="tablink2" onclick="openSubPage('inp4div', this, 'lightgreen')">IN 4</button-->
         <div id="inp1div" class="tabcontent2">
           <form style="margin-top:50px">
             <fieldset style="border:1;">
@@ -1330,7 +1337,7 @@ function SetActualTime()
             <input type="time" step="1" id="timer1" class="timer" value="00:00:00">
           </div>
         </div>
-        <div id="inp4div" class="tabcontent2">
+        <!--div id="inp4div" class="tabcontent2">
           <form style="margin-top:50px">
             <fieldset style="border:1;">
               <legend>Funkce vstupu IN4</legend>
@@ -1365,10 +1372,11 @@ function SetActualTime()
             <label for="timer1" class="tmrLabel">čas</label>
             <input type="time" step="1" id="timer1" class="timer" value="00:00:00">
           </div>
-        </div>
+        </div-->
         <div>
           <button type="submit" onclick="SaveData()">ULOŽIT</button>
-        </div>
+          <button type="submit" onclick="getData()">NAČÍST</button>
+        </div>        
       </div>
     </div>
 </body>
