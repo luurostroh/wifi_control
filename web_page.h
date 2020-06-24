@@ -240,6 +240,7 @@ char webpage[] PROGMEM = R"=====(
     input[type=time],
     input[type=number] {
       font-size: 60px;
+      width: auto;
     }
 
     button[type=submit] {
@@ -297,6 +298,7 @@ char webpage[] PROGMEM = R"=====(
     input[type=time],
     input[type=number] {
       font-size: 30px;
+      width: auto;
     }
 
     button[type=submit] {
@@ -453,7 +455,7 @@ char webpage[] PROGMEM = R"=====(
       var t_val = event.data.substring(2);
       document.getElementById("tempLabel1").innerHTML = t_val;
     }
-    if(event.data[1]=='S'){
+    if(event.data[1]=='#'){
       SortData(event.data);
     }
     }
@@ -466,42 +468,79 @@ char webpage[] PROGMEM = R"=====(
 
   function SortData(msg) {
     //rozsekat zpravu
-
-    var recInp = msg.substring(msg.findIndex('I') + 2, msg.findIndex('O'));
-    var recOutp = msg.substring(msg.findIndex('O') + 2, msg.findIndex('t'));
-    var recTstat = msg.substring(msg.findIndex('T') + 2, msg.findIndex('S'));
-    var recSpin = msg.substring(msg.findIndex('S') + 2, msg.findIndex('E'));
-    //vstupy
-    document.getElementById("in1").style.backgroundColor = recInp[0] == '1' ? "#ffc107" : "gray";
-    document.getElementById("in2").style.backgroundColor = recInp[1] == '1' ? "#ffc107" : "gray";
-    document.getElementById("in3").style.backgroundColor = recInp[2] == '1' ? "#ffc107" : "gray";
-    document.getElementById("in4").style.backgroundColor = recInp[3] == '1' ? "#ffc107" : "gray";
-    //vystupy
-    document.getElementById("out1").style.backgroundColor = recOutp[0] == '1' ? "#ffc107" : "gray";
-    document.getElementById("out2").style.backgroundColor = recOutp[1] == '1' ? "#ffc107" : "gray";
-    document.getElementById("out3").style.backgroundColor = recOutp[2] == '1' ? "#ffc107" : "gray";
-    document.getElementById("out4").style.backgroundColor = recOutp[3] == '1' ? "#ffc107" : "gray";
-
-    //teplota 
-    document.getElementById("tempLabel1").value = msg.substring(msg.indexOf('t') + 1, msg.indexOf('T'));
+//&#T*0_0*0_0*0_0*0_0*#S*0_0*0_0*0_0*0_0*#O*0*0*#IO*0_0|0*0_1|0*0_2|0
+    var recTstat = msg.substring(msg.indexOf('T') + 2, msg.indexOf('S'));
+    var recTstatPole = recTstat.split('*');
+    var recInp = msg.substring(msg.indexOf('I') + 2, msg.indexOf('O'));
+   // var recOutp = msg.substring(msg.findIndex('O') + 2, msg.findIndex('t'));
+   // var recTstat = msg.substring(msg.findIndex('T') + 2, msg.findIndex('S'));
+   // var recSpin = msg.substring(msg.findIndex('S') + 2, msg.findIndex('E'));
 
     //termostat
     var teploty = document.getElementsByClassName("setTemp");
     var casy = document.getElementsByClassName("setTime");
     for (i = 0; i < teploty.length; i++) {
-      teploty[i].value = recTstat.substr(recTstat.indexOf('*') + 1, recTstat.indexOfx('_'));
-      casy[i].value = FromMinutes(recTstat.substr(recTstat.indexOf('_') + 1, recTstat.lastIndexOf('')));
+      var tp = recTstatPole[i].substr( recTstatPole[i].indexOf('_')+1);
+      var fl = parseFloat(tp.substring(0,2)+'.'+tp.substring(2));
+      teploty[i].value = fl;
+      casy[i].valueAsNumber = parseInt( recTstatPole[i].substr(0,recTstatPole[i].indexOf('_')))*60000;;
     }
 
     //spinacky
     var casyOn = document.getElementsByClassName("setTimeSpinOn");
     var casyOff = document.getElementsByClassName("setTimeSpinOff");
+    var recSpin = msg.substring(msg.indexOf('S') + 2, msg.indexOf('O')); 
+    var recSpinPole = recSpin.split('*');
     for (i = 0; i < casyOn.length; i++) {
-      casyOn[i].value = FromMinutes(recSpin.substr(recSpin.indexOf('_') + 1, recSpin.lastIndexOf('')));
-      casyOff[i].value = FromMinutes(recSpin.substr(recSpin.indexOf('_') + 1, recSpin.lastIndexOf('')));
+      casyOn[i].valueAsNumber = parseInt( recSpinPole[i].substr(0,recSpinPole[i].indexOf('_')))*60000;
+      casyOff[i].valueAsNumber = parseInt(recSpinPole[i].substr(recSpinPole[i].indexOf('_') + 1))*60000;
     }
 
+    //vystupy termostat,spinacky
+    var outs = msg.substring(msg.indexOf('O') + 2, msg.indexOf('I')); 
+    var prepinacTstat = document.getElementsByName("prepTstat");
+    var prepinacSpina = document.getElementsByName("prepSpin");
+    var outsPole = outs.split('*');
+    var out_tstat = parseInt(outsPole[0]);
+    for (i = 0; i < prepinacTstat.length; i++) {
+      if(out_tstat == i){
+        prepinacTstat[i].checked = true;
+        OutputSelect(prepinacTstat[i]);
+      }
+    }
+    var out_spina = parseInt(outsPole[1]);
+    for (i = 0; i < prepinacSpina.length; i++) {
+      if(out_spina == i){
+      prepinacSpina[i].checked = true;  
+      OutputSelect(prepinacSpina[i]);
+      }
+    }
     //nastaveni IO
+    var IOs = msg.substring(msg.indexOf('I') + 3);
+    var IOsPole = IOs.split('*');
+    var prep_mode1 = document.getElementsByName("prepInMode1");
+    var prep_mode2 = document.getElementsByName("prepInMode2");
+    var prep_mode3 = document.getElementsByName("prepInMode3");
+    var prepsInp1_ = document.getElementsByName("prepInp1");
+    var prepsInp2_ = document.getElementsByName("prepInp2");
+    var prepsInp3_ = document.getElementsByName("prepInp3");
+    var timers = document.getElementsByClassName("timer");
+    for ( ii = 0; ii < IOsPole.length; ii++) {
+      var mode_ = parseInt(IOsPole[ii].substring(0,IOsPole[ii].indexOf('_')));
+      var out_ = parseInt(IOsPole[ii].substring(IOsPole[ii].indexOf('_')+1,IOsPole[ii].indexOf('|')));
+      var time_ =parseInt(IOsPole[ii].substring(IOsPole[ii].indexOf('|')+1));
+      for( j = 0; j < 3; j++){
+        if(ii == 0){if(mode_ == j){prep_mode1[j].checked = true;OutputSelect(prep_mode1[j]);}}
+        if(ii == 1){if(mode_ == j){prep_mode2[j].checked = true;OutputSelect(prep_mode2[j]);}}
+        if(ii == 2){if(mode_ == j){prep_mode3[j].checked = true;OutputSelect(prep_mode3[j]);}}
+      }
+      if(out_ != -1){
+      if(ii == 0){prepsInp1_[out_].checked = true;OutputSelect(prepsInp1_[out_])}
+      if(ii == 1){prepsInp2_[out_].checked = true;OutputSelect(prepsInp2_[out_])}
+      if(ii == 2){prepsInp3_[out_].checked = true;OutputSelect(prepsInp3_[out_])}
+      }
+      timers[ii].valueAsNumber = parseInt(time_)*1000; 
+    }
 
   }
 
@@ -521,15 +560,15 @@ char webpage[] PROGMEM = R"=====(
     for (i = 0; i < teploty.length; i++) {
       var num = teploty[i].valueAsNumber * 10;
       message += num.toString() + '_';
-      message += ToMinutes(casy[i].value) + "*";
+      message += ToMinutes(casy[i].valueAsNumber) + "*";
     }
     var spinaciCasyOn = document.getElementsByClassName("setTimeSpinOn");
     var spinaciCasyOff = document.getElementsByClassName("setTimeSpinOff");
     message += "#S*"
     for (i = 0; i < spinaciCasyOn.length; i++) {
 
-      message += ToMinutes(spinaciCasyOn[i].value) + "_";
-      message += ToMinutes(spinaciCasyOff[i].value) + "*";
+      message += ToMinutes(spinaciCasyOn[i].valueAsNumber) + "_";
+      message += ToMinutes(spinaciCasyOff[i].valueAsNumber) + "*";
     }
     const outindex = Array.from(document.getElementsByName("prepTstat"));
     const idx = outindex.findIndex(x => x.checked == true);
@@ -577,11 +616,9 @@ char webpage[] PROGMEM = R"=====(
   }
 
   //funkce pro prevod casu na minuty
-  function ToMinutes(cas) {
-    
-    var pom = parseInt(cas.substr(0, 2));
-    var pom2 = parseInt(cas.substr(3, 2));
-    return (pom * 60 + pom2).toString();
+  function ToMinutes(cas) {  
+    var pom = parseInt(cas)/60000;
+    return pom.toString();
   }
 
       //funkce pro prevod casu na minuty
@@ -595,12 +632,21 @@ char webpage[] PROGMEM = R"=====(
   //funkce pro prevod minut na HH:MM
   function FromMinutes(cas) {
     var pom = parseInt(cas);
-    var pom1 = pom / 60;
+    var pom1 = ~~(pom / 60);
     var pom2 = pom % 60;
 
-    return pom1.toString() + ':' + pom2.toString();
+    return pom1.toString().padStart(2,'0') + ':' + pom2.toString().padStart(2,'0');
   }
 
+    //funkce pro prevod sekund na HH:MM:SS
+    function FromSeconds(cas) {
+    var pom = parseInt(cas);
+    var pom1 = ~~(pom / 3600);
+    var pom2 = ~~(pom / 60) - pom1 * 60;
+    var pom3 = pom % 60;
+
+    return pom1.toString().padStart(2,'0') + ':' + pom2.toString().padStart(2,'0')+ ':' + pom3.toString().padStart(2,'0');
+  }
   function btn1click() {
     var btn = document.getElementById("out1");
     if (btn.style.backgroundColor == "") btn.style.backgroundColor = "gray";   
@@ -751,8 +797,8 @@ function SetActualTime()
           radioInp2[i].labels[0].innerText = "";
           radioInp3[i].disabled = true;
           radioInp3[i].labels[0].innerText = "";
-          radioInp4[i].disabled = true;
-          radioInp4[i].labels[0].innerText = "";
+         // radioInp4[i].disabled = true;
+         // radioInp4[i].labels[0].innerText = "";
         }
         else {
           radioTstat[i].disabled = false;
@@ -764,8 +810,8 @@ function SetActualTime()
             radioInp2[i].labels[0].innerText = descripts[i];
             radioInp3[i].disabled = false;
             radioInp3[i].labels[0].innerText = descripts[i];
-            radioInp4[i].disabled = false;
-            radioInp4[i].labels[0].innerText = descripts[i];
+         //   radioInp4[i].disabled = false;
+         //   radioInp4[i].labels[0].innerText = descripts[i];
           }
         }
       }
@@ -786,8 +832,8 @@ function SetActualTime()
             radioInp2[ii].labels[0].innerText = descripts[ii];
             radioInp3[ii].disabled = false;
             radioInp3[ii].labels[0].innerText = descripts[ii];
-            radioInp4[ii].disabled = false;
-            radioInp4[ii].labels[0].innerText = descripts[ii];
+          //  radioInp4[ii].disabled = false;
+           // radioInp4[ii].labels[0].innerText = descripts[ii];
           }
         }
         selectedOut.checked = false;
@@ -804,8 +850,8 @@ function SetActualTime()
           radioInp2[i].labels[0].innerText = "";
           radioInp3[i].disabled = true;
           radioInp3[i].labels[0].innerText = "";
-          radioInp4[i].disabled = true;
-          radioInp4[i].labels[0].innerText = "";
+       //   radioInp4[i].disabled = true;
+        //  radioInp4[i].labels[0].innerText = "";
 
 
         }
@@ -819,8 +865,8 @@ function SetActualTime()
             radioInp2[i].labels[0].innerText = descripts[i];
             radioInp3[i].disabled = false;
             radioInp3[i].labels[0].innerText = descripts[i];
-            radioInp4[i].disabled = false;
-            radioInp4[i].labels[0].innerText = descripts[i];
+         //   radioInp4[i].disabled = false;
+         //   radioInp4[i].labels[0].innerText = descripts[i];
           }
         }
       }
@@ -841,8 +887,8 @@ function SetActualTime()
             radioInp1[ii].labels[0].innerText = descripts[ii];
             radioInp3[ii].disabled = false;
             radioInp3[ii].labels[0].innerText = descripts[ii];
-            radioInp4[ii].disabled = false;
-            radioInp4[ii].labels[0].innerText = descripts[ii];
+           // radioInp4[ii].disabled = false;
+           // radioInp4[ii].labels[0].innerText = descripts[ii];
           }
         }
       }
@@ -858,8 +904,8 @@ function SetActualTime()
           radioInp1[i].labels[0].innerText = "";
           radioInp3[i].disabled = true;
           radioInp3[i].labels[0].innerText = "";
-          radioInp4[i].disabled = true;
-          radioInp4[i].labels[0].innerText = "";
+         // radioInp4[i].disabled = true;
+         // radioInp4[i].labels[0].innerText = "";
         }
         else {
           // radioSpin[i].disabled = false;
@@ -873,8 +919,8 @@ function SetActualTime()
             radioInp1[i].labels[0].innerText = descripts[i];
             radioInp3[i].disabled = false;
             radioInp3[i].labels[0].innerText = descripts[i];
-            radioInp4[i].disabled = false;
-            radioInp4[i].labels[0].innerText = descripts[i];
+         //   radioInp4[i].disabled = false;
+          //  radioInp4[i].labels[0].innerText = descripts[i];
           }
         }
       }
@@ -894,8 +940,8 @@ function SetActualTime()
             radioInp1[ii].labels[0].innerText = descripts[ii];
             radioInp2[ii].disabled = false;
             radioInp2[ii].labels[0].innerText = descripts[ii];
-            radioInp4[ii].disabled = false;
-            radioInp4[ii].labels[0].innerText = descripts[ii];
+         //   radioInp4[ii].disabled = false;
+          //  radioInp4[ii].labels[0].innerText = descripts[ii];
           }
         }
         selectedOut.checked = false;
@@ -912,8 +958,8 @@ function SetActualTime()
           radioInp1[i].labels[0].innerText = "";
           radioInp2[i].disabled = true;
           radioInp2[i].labels[0].innerText = "";
-          radioInp4[i].disabled = true;
-          radioInp4[i].labels[0].innerText = "";
+        //  radioInp4[i].disabled = true;
+       //   radioInp4[i].labels[0].innerText = "";
 
 
         }
@@ -927,8 +973,8 @@ function SetActualTime()
             radioInp1[i].labels[0].innerText = descripts[i];
             radioInp2[i].disabled = false;
             radioInp2[i].labels[0].innerText = descripts[i];
-            radioInp4[i].disabled = false;
-            radioInp4[i].labels[0].innerText = descripts[i];
+       //     radioInp4[i].disabled = false;
+       //     radioInp4[i].labels[0].innerText = descripts[i];
           }
         }
       }

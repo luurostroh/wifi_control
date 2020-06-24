@@ -80,8 +80,8 @@ uint16 adc_val;
 uint16_t old_temperature;
 uint16_t temperature;
 uint16_t minutes;
-char *ssid = "MujNet";
-char *password = "hesloludek";
+char *ssid = "plan-b";
+char *password = "simplinic";
 //#include "web_page.h"
 
 //////////////////////////////////////////////
@@ -99,6 +99,7 @@ void setup()
     Serial.print(".");
     delay(500);
   }
+  PullFromEeprom();
   Serial.println("");
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
@@ -136,8 +137,8 @@ void loop()
  if (spinackyOut.num != 0)
    Spinacky();
  //   //termostat
- //   if (termostatOut.num != 0)
- //     Termostat();
+    // if (termostatOut.num != 0)
+    // Termostat();
  //web
  webSocket.loop();
  server.handleClient();
@@ -497,7 +498,7 @@ void Termostat()
   ReadTemp();
   for (size_t i = 0; i < 4; i++)
   {
-    pom_i = i + 1;
+    pom_i = i +1;
     if(i ==3)
       pom_i = 0;
     if (minutes >= termostatTable[i].cas && minutes < termostatTable[pom_i].cas)
@@ -577,6 +578,7 @@ delay(10);
 #endif
   EEPROM.put(start_point, IO_controls);
   delay(10);
+  EEPROM.commit();
 }
 
 void PullFromEeprom()
@@ -636,13 +638,13 @@ void PullFromEeprom()
 void DataToPage()
 {
 //&#T*200_60*200_120*200_180*200_240*#S*60_120*180_240*300_360*420_480*#O*0*1*#IO*0_2|0*1_3|0*-1_-1|0*
-String send_data = "&S*";
+String send_data = "&#T*";
 send_data += String(termostatTable[0].cas) + "_";
 send_data += String(termostatTable[0].teplota)+ "*";
 send_data += String(termostatTable[1].cas) + "_";
 send_data += String(termostatTable[1].teplota)+ "*";
 send_data += String(termostatTable[2].cas) + "_";
-send_data += String(termostatTable[3].teplota)+ "*";
+send_data += String(termostatTable[2].teplota)+ "*";
 send_data += String(termostatTable[3].cas) + "_";
 send_data += String(termostatTable[3].teplota)+ "*#S*";
 send_data += String(spinackyTable[0].casOn) + "_";
@@ -676,11 +678,14 @@ send_data += String(j)+ "|";
 send_data += String(IO_controls[2].time)+ "*";
 #ifdef DBG
 Serial.println("topage");
-Serial.println(send_data);
 #endif
-char msg[sizeof(send_data)];
-send_data.toCharArray(msg, sizeof(send_data));
-webSocket.broadcastTXT(msg, sizeof(msg));
+unsigned int dl =  send_data.length();
+char msg[dl];
+send_data.toCharArray(msg,dl);
+Serial.println(msg);
+delay(500);
+webSocket.broadcastTXT(msg, dl);
+delay(500);
 }
 
 void ChangeOutput(Output *_out, uint8_t val)
