@@ -1,47 +1,47 @@
-#include <OneWire.h>
 #include <DallasTemperature.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266WiFi.h>
+#include <NTPClient.h>
+#include <OneWire.h>
 #include <WebSocketsServer.h>
-#include "web_page.h"
+#include <WiFiUdp.h>
 #include "EEPROM.h"
+#include "web_page.h"
+
 #ifdef LED_BUILTIN
 #undef LED_BUILTIN
 #endif
 #define DBG
 // test 3
 
-OneWire oneWire(D9);                 // inicializace OneWire
-DallasTemperature ds18b20(&oneWire); // vytvo�en� objektu �idla teploty
+OneWire oneWire(D9);                  // inicializace OneWire
+DallasTemperature ds18b20(&oneWire);  // vytvo�en� objektu �idla teploty
 
 uint64 rtc_counter;
 uint64 out_timer;
 #pragma region IO setting
 
-typedef struct
-{
+typedef struct {
   uint8_t num;
-  uint8_t last_state; //posledni stav/zmena
+  uint8_t last_state;  // posledni stav/zmena
   uint8_t id;
 } Input;
 Input Inputs[4];
 
-typedef struct
-{
+typedef struct {
   uint8_t num;
-  uint8_t last_state; //posledni stav/zmena
+  uint8_t last_state;  // posledni stav/zmena
   uint8_t id;
 } Output;
 Output Outputs[4];
 
-uint8_t outs[4] = { D13, D12, D11,D10};
+uint8_t outs[4] = {D13, D12, D11, D10};
 #pragma endregion
 int dataLenght;
 
 ESP8266WebServer server;
 WebSocketsServer webSocket = WebSocketsServer(81);
-typedef struct
-{
+typedef struct {
   uint16_t teplota;
   uint16_t cas;
 } TermostatStruct;
@@ -49,8 +49,7 @@ typedef struct
 TermostatStruct termostatTable[4];
 Output termostatOut;
 
-typedef struct
-{
+typedef struct {
   uint16_t casOn;
   uint16_t casOff;
 } SpinackyStruct;
@@ -66,10 +65,9 @@ Output spinackyOut;
 //   casovac = 2
 // } IoModeEnum;
 
-typedef struct
-{
+typedef struct {
   int8_t mode;
-  Output* assoc_out;
+  Output *assoc_out;
   uint16_t time;
 } IOctrlStruct;
 
@@ -80,22 +78,24 @@ uint16 adc_val;
 uint16_t old_temperature;
 uint16_t temperature;
 uint16_t minutes;
-char *ssid = "plan-b";
-char *password = "simplinic";
+// char *ssid = "plan-b";
+// char *password = "simplinic";
+char *ssid = "MujNet";
+char *password = "hesloludek";
 //#include "web_page.h"
 
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 7200);
 //////////////////////////////////////////////
-void setup()
-{
+void setup() {
   EEPROM.begin(512);
   SetIO();
   ds18b20.begin();
   WiFi.begin(ssid, password);
   Serial.begin(115200);
   int numofdallas = ds18b20.getDeviceCount();
- 
-  while (WiFi.status() != WL_CONNECTED)
-  {
+
+  while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(500);
   }
@@ -103,72 +103,67 @@ void setup()
   Serial.println("");
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
-  Serial.print("pocet dallasu:");Serial.println(numofdallas);
-  server.on("/", []() {
-    server.send_P(200, "text/html", webpage);
-  });
+  Serial.print("pocet dallasu:");
+  Serial.println(numofdallas);
+  server.on("/", []() { server.send_P(200, "text/html", webpage); });
   server.begin();
   webSocket.begin();
   webSocket.onEvent(webSocketEvent);
+  timeClient.begin();
 }
 
 // Add the main program code into the continuous loop() function
 char msg[6];
 unsigned long counter;
-void loop()
-{
+void loop() {
+  // cas
+  if (millis() > counter ) {
+    ReadAdc();
+    Termostat();
+    counter = millis() + 1000;
+    GetUdpTime();
+  }
 
- //cas
- if (millis() > counter)
- {
-   ReadAdc();
-   Termostat();
-   counter = millis() + 1000;
-   if (++rtc_counter % 60 == 0)
-     minutes++;
-#ifdef DBG
-    char buff[28];
-    sprintf(buff, "%02u:%02u:%02u", minutes / 60, minutes % 60, rtc_counter % 60);
-    Serial.println(buff);
-#endif
- }
-
- //   ///spinacky
- if (spinackyOut.num != 0)
-   Spinacky();
- //   //termostat
-    // if (termostatOut.num != 0)
-    // Termostat();
- //web
- webSocket.loop();
- server.handleClient();
- TestVstupu();
+  //   ///spinacky
+  if (spinackyOut.num != 0) Spinacky();
+  //   //termostat
+  // if (termostatOut.num != 0)
+  // Termostat();
+  // web
+  webSocket.loop();
+  server.handleClient();
+  TestVstupu();
 }
 
-void TestVstupu()
+void GetUdpTime ()
 {
+  timeClient.update();
+  int hh = timeClient.getHours();
+  int mm = timeClient.getMinutes();
+  int ss = timeClient.getSeconds();
+  rtc_counter = ( hh* 3600) +( mm * 60) + ss;
+  minutes = (hh * 60) + mm;             
+#ifdef DBG
+  char buff[28];
+  sprintf(buff, "%02u:%02u:%02u", hh, mm, ss);
+  Serial.println(buff);
+#endif
+}
 
-  
-  for (size_t i = 0; i < 3; i++)
-  {
-    //kontrola jestli je seply casovany vystup
-    if (IO_controls[i].mode == 2 && out_timer > 0)
-    {
-      if (IO_controls[i].assoc_out->last_state == HIGH)
-      {
-        if (millis()  > out_timer)
-        {
-        ChangeOutput(IO_controls[i].assoc_out, LOW);
-        out_timer = 0;
+void TestVstupu() {
+  for (size_t i = 0; i < 3; i++) {
+    // kontrola jestli je seply casovany vystup
+    if (IO_controls[i].mode == 2 && out_timer > 0) {
+      if (IO_controls[i].assoc_out->last_state == HIGH) {
+        if (millis() > out_timer) {
+          ChangeOutput(IO_controls[i].assoc_out, LOW);
+          out_timer = 0;
         }
-       
       }
     }
 
-    if (!digitalRead(Inputs[i].num))
-    {
-      if (Inputs[i].last_state != 1)
-      {
+    if (!digitalRead(Inputs[i].num)) {
+      if (Inputs[i].last_state != 1) {
         sprintf(msg, "#I%don", Inputs[i].id);
 #ifdef DBG
         Serial.println(msg);
@@ -177,29 +172,27 @@ void TestVstupu()
         webSocket.broadcastTXT(msg, 5);
         if (IO_controls[i].mode == 0)
           ChangeOutput(IO_controls[i].assoc_out, HIGH);
-        else if (IO_controls[i].mode == 1)
-        {
+        else if (IO_controls[i].mode == 1) {
 #ifdef DBG
-        Serial.println("mode1");
-#endif          
-          if(IO_controls[i].assoc_out->last_state == 0){ChangeOutput(IO_controls[i].assoc_out,HIGH);}
-          else {ChangeOutput(IO_controls[i].assoc_out,LOW);}
-        }
-        else if (IO_controls[i].mode == 2)
-        {
+          Serial.println("mode1");
+#endif
+          if (IO_controls[i].assoc_out->last_state == 0) {
+            ChangeOutput(IO_controls[i].assoc_out, HIGH);
+          } else {
+            ChangeOutput(IO_controls[i].assoc_out, LOW);
+          }
+        } else if (IO_controls[i].mode == 2) {
 #ifdef DBG
-        Serial.println("mode2");
-#endif             
+          Serial.println("mode2");
+#endif
           out_timer = millis() + (IO_controls[i].time * 1000);
           ChangeOutput(IO_controls[i].assoc_out, HIGH);
         }
       }
     }
 
-    else
-    {
-      if (Inputs[i].last_state != 0)
-      {
+    else {
+      if (Inputs[i].last_state != 0) {
         sprintf(msg, "#I%dof", Inputs[i].id);
 #ifdef DBG
         Serial.println(msg);
@@ -213,34 +206,29 @@ void TestVstupu()
   }
 }
 
-void ReadTemp()
-{
+void ReadTemp() {
   char msg[10];
   ds18b20.requestTemperatures();
   float t = ds18b20.getTempCByIndex(0);
   temperature = (uint16_t)(t * 10);
-  if (old_temperature != temperature)
-  {
+  if (old_temperature != temperature) {
     old_temperature = temperature;
-    sprintf(msg, "#T%02u,%1u", temperature/10,temperature%10);
+    sprintf(msg, "#T%02u,%1u", temperature / 10, temperature % 10);
     webSocket.broadcastTXT(msg, 6);
 
-#ifdef DBG  
-  Serial.print(t);
-#endif  
+#ifdef DBG
+    Serial.print(t);
+#endif
   }
 }
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
-{
-  if (type == WStype_TEXT)
-  {
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
+                    size_t length) {
+  if (type == WStype_TEXT) {
     String data = "";
 #ifdef DBG
     Serial.println("ok"); /***/
 #endif
-    if (payload[0] == '&')
-    {
-
+    if (payload[0] == '&') {
 #ifdef DBG
       Serial.print("message lenght: "); /***/
       Serial.println(length);           /***/
@@ -248,11 +236,9 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
       dataLenght = length;
       uint8_t delimiters[19];
       uint8_t index = 0;
-      for (int i = 0; i < length; i++)
-      {
+      for (int i = 0; i < length; i++) {
         data += (char)payload[i];
-        if (payload[i] == '*')
-        {
+        if (payload[i] == '*') {
           delimiters[index++] = i;
 #ifdef DBG
           Serial.print(i);
@@ -260,17 +246,15 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 #endif
         }
       }
-if(payload[1] == 'S')
-{
-  DataToPage();
-  return;
-}
+      if (payload[1] == 'S') {
+        DataToPage();
+        return;
+      }
 
-if (payload[1] == 'T')
-{
-  String tstamp = data.substring(delimiters[0] + 1, delimiters[1]);
-  minutes = tstamp.toInt();
-  rtc_counter = minutes * 60;
+      if (payload[1] == 'T') {
+        String tstamp = data.substring(delimiters[0] + 1, delimiters[1]);
+        minutes = tstamp.toInt();
+        rtc_counter = minutes * 60;
 
 #ifdef DBG
         char buf[15];
@@ -286,8 +270,8 @@ if (payload[1] == 'T')
       Serial.println("sub:"); /***/
 #endif
       String sub = "";
-      //tabulka termostatu
-      //termostat table teplota 1
+      // tabulka termostatu
+      // termostat table teplota 1
       sub = data.substring(delimiters[0] + 1, delimiters[1]);
 #ifdef DBG
       Serial.println(sub); /***/
@@ -356,7 +340,7 @@ if (payload[1] == 'T')
       // termostat table cas OFF 4
       spinackyTable[3].casOff = sub.substring(sub.indexOf('_') + 1).toInt();
 
-      //vystup pro termostat
+      // vystup pro termostat
       sub = data.substring(delimiters[10] + 1, delimiters[11]);
 #ifdef DBG
       Serial.println(sub);
@@ -364,7 +348,7 @@ if (payload[1] == 'T')
       uint8_t idx = sub.toInt();
       termostatOut.num = outs[idx];
       termostatOut.id = idx + 1;
-      //vystup pro spinacky
+      // vystup pro spinacky
       sub = data.substring(delimiters[11] + 1, delimiters[12]);
 #ifdef DBG
       Serial.println(sub);
@@ -372,7 +356,7 @@ if (payload[1] == 'T')
       idx = sub.toInt();
       spinackyOut.num = outs[idx];
       spinackyOut.id = idx + 1;
-      //IO nastaveni 1
+      // IO nastaveni 1
       sub = data.substring(delimiters[13] + 1, delimiters[14]);
 #ifdef DBG
       Serial.println(sub);
@@ -381,16 +365,16 @@ if (payload[1] == 'T')
       idx = sub.substring(sub.indexOf('_') + 1, sub.indexOf('|')).toInt();
       IO_controls[0].assoc_out = &Outputs[idx];
       IO_controls[0].time = sub.substring(sub.indexOf('|') + 1).toInt();
-      //IO nastaveni 2
+      // IO nastaveni 2
       sub = data.substring(delimiters[14] + 1, delimiters[15]);
 #ifdef DBG
       Serial.println(sub);
 #endif
       IO_controls[1].mode = sub.substring(0, sub.indexOf('_')).toInt();
-      idx =  sub.substring(sub.indexOf('_') + 1, sub.indexOf('|')).toInt();
+      idx = sub.substring(sub.indexOf('_') + 1, sub.indexOf('|')).toInt();
       IO_controls[1].assoc_out = &Outputs[idx];
       IO_controls[1].time = sub.substring(sub.indexOf('|') + 1).toInt();
-      //IO nastaveni 1
+      // IO nastaveni 1
       sub = data.substring(delimiters[15] + 1, delimiters[16]);
 #ifdef DBG
       Serial.println(sub);
@@ -399,7 +383,7 @@ if (payload[1] == 'T')
       idx = sub.substring(sub.indexOf('_') + 1, sub.indexOf('|')).toInt();
       IO_controls[2].assoc_out = &Outputs[idx];
       IO_controls[2].time = sub.substring(sub.indexOf('|') + 1).toInt();
-      //IO nastaveni 1
+      // IO nastaveni 1
       sub = data.substring(delimiters[16] + 1, delimiters[17]);
 #ifdef DBG
       Serial.println(sub);
@@ -412,50 +396,51 @@ if (payload[1] == 'T')
       PullFromEeprom();
     }
 
-    else if (payload[0] == '#')
-    {
+    else if (payload[0] == '#') {
 #ifdef DBG
       Serial.print("IO ");
       Serial.print(payload[3]);
       Serial.print(payload[5]);
 #endif
 
-      switch (payload[3])
-      {
-      case '1':
-        if (payload[5] == 'n')
-          ChangeOutput(&Outputs[0], HIGH);
-        else
-          ChangeOutput(&Outputs[0], LOW);
-        break;
+      switch (payload[3]) {
+        case '1':
+          if (payload[5] == 'n')
+            ChangeOutput(&Outputs[0], HIGH);
+          else
+            ChangeOutput(&Outputs[0], LOW);
+          break;
 
-      case '2':
-        if (payload[5] == 'n')
-          ChangeOutput(&Outputs[1], HIGH);
-        else
-          ChangeOutput(&Outputs[1], LOW);
-        break;
+        case '2':
+          if (payload[5] == 'n')
+            ChangeOutput(&Outputs[1], HIGH);
+          else
+            ChangeOutput(&Outputs[1], LOW);
+          break;
 
-      case '3':
-        if (payload[5] == 'n')
-          ChangeOutput(&Outputs[2], HIGH);
-        else
-          ChangeOutput(&Outputs[2], LOW);
-        break;
+        case '3':
+          if (payload[5] == 'n')
+            ChangeOutput(&Outputs[2], HIGH);
+          else
+            ChangeOutput(&Outputs[2], LOW);
+          break;
 
-      case '4':
-        if (payload[5] == 'n')
-          ChangeOutput(&Outputs[3], HIGH);
-        else
-          ChangeOutput(&Outputs[3], LOW);
-        break;
-      default:
-        break;
+        case '4':
+          if (payload[5] == 'n')
+            ChangeOutput(&Outputs[3], HIGH);
+          else
+            ChangeOutput(&Outputs[3], LOW);
+          break;
+        default:
+          break;
       }
 
 #ifdef DBG
-  Serial.print(Outputs[0].last_state);Serial.print(Outputs[1].last_state);Serial.print(Outputs[2].last_state);Serial.println(Outputs[3].last_state);
-#endif      
+      Serial.print(Outputs[0].last_state);
+      Serial.print(Outputs[1].last_state);
+      Serial.print(Outputs[2].last_state);
+      Serial.println(Outputs[3].last_state);
+#endif
     }
   }
 }
@@ -463,27 +448,20 @@ if (payload[1] == 'T')
 boolean outSpinIsSetOn = false, outSpinIsSetOff = false;
 boolean outTermIsSetOn = false, outTermIsSetOff = false;
 
-void Spinacky()
-{
+void Spinacky() {
 #ifdef DBG
   // Serial.print("min:");Serial.println(minutes);
 #endif
 
-  for (uint8_t i = 0; i < 4; i++)
-  {
-    if (spinackyTable[i].casOn == minutes)
-    {
-      if (outSpinIsSetOn == false)
-      {
+  for (uint8_t i = 0; i < 4; i++) {
+    if (spinackyTable[i].casOn == minutes) {
+      if (outSpinIsSetOn == false) {
         outSpinIsSetOn = true;
         outSpinIsSetOff = false;
         ChangeOutput(&spinackyOut, HIGH);
       }
-    }
-    else if (spinackyTable[i].casOff == minutes)
-    {
-      if (outSpinIsSetOff == false)
-      {
+    } else if (spinackyTable[i].casOff == minutes) {
+      if (outSpinIsSetOff == false) {
         outSpinIsSetOff = true;
         outSpinIsSetOn = false;
         ChangeOutput(&spinackyOut, LOW);
@@ -492,73 +470,65 @@ void Spinacky()
   }
 }
 
-void Termostat()
-{
+void Termostat() {
   uint8_t pom_i;
   ReadTemp();
-  for (size_t i = 0; i < 4; i++)
-  {
-    pom_i = i +1;
-    if(i ==3)
-      pom_i = 0;
-    if (minutes >= termostatTable[i].cas && minutes < termostatTable[pom_i].cas)
-    {
+  for (size_t i = 0; i < 4; i++) {
+    pom_i = i + 1;
+    if (i == 3) pom_i = 0;
+    if (minutes >= termostatTable[i].cas &&
+        minutes < termostatTable[pom_i].cas) {
       Serial.print(i);
       Serial.print(": ");
       Serial.print(termostatTable[i].cas);
-      Serial.print("-");Serial.print(minutes);
-     Serial.print("-/-");
+      Serial.print("-");
+      Serial.print(minutes);
+      Serial.print("-/-");
 
-          Serial.print(termostatTable[i].teplota);
-      Serial.print("-");Serial.print(temperature);
-    if (temperature < (termostatTable[i].teplota-5))
-    {
-      if(outTermIsSetOn == false)
-      {
-        outTermIsSetOn = true;
-        outTermIsSetOff = false;
-        ChangeOutput(&termostatOut, HIGH);
- #ifdef DBG       
-        Serial.println(" tstaton");
- #endif
+      Serial.print(termostatTable[i].teplota);
+      Serial.print("-");
+      Serial.print(temperature);
+      if (temperature < (termostatTable[i].teplota - 5)) {
+        if (outTermIsSetOn == false) {
+          outTermIsSetOn = true;
+          outTermIsSetOff = false;
+          ChangeOutput(&termostatOut, HIGH);
+#ifdef DBG
+          Serial.println(" tstaton");
+#endif
+        }
       }
-    }
 
-    else if (temperature >= termostatTable[i].teplota)
-    {
-      if(outTermIsSetOff == false)
-      {
-        outTermIsSetOn = false;
-        outTermIsSetOff = true;
-        ChangeOutput(&termostatOut, LOW);
- #ifdef DBG       
-        Serial.println(" tstatoff");
- #endif        
+      else if (temperature >= termostatTable[i].teplota) {
+        if (outTermIsSetOff == false) {
+          outTermIsSetOn = false;
+          outTermIsSetOff = true;
+          ChangeOutput(&termostatOut, LOW);
+#ifdef DBG
+          Serial.println(" tstatoff");
+#endif
+        }
       }
+      break;
     }
-    break;
-    }
+  }
 }
 
-
-}
-
-void PushToEeprom()
-{
+void PushToEeprom() {
 #ifdef DBG
   Serial.println("push EE");
 #endif
   int start_point = 0;
   EEPROM.put(start_point, termostatTable);
-  start_point += 16;//sizeof(termostatTable);
-delay(10);
+  start_point += 16;  // sizeof(termostatTable);
+  delay(10);
 #ifdef DBG
   Serial.print(start_point);
   Serial.print(">");
 #endif
   EEPROM.put(start_point, spinackyTable);
- delay(10);  
-  start_point += 16;//sizeof(spinackyTable);
+  delay(10);
+  start_point += 16;  // sizeof(spinackyTable);
 #ifdef DBG
   Serial.print(start_point);
   Serial.print(">");
@@ -581,14 +551,12 @@ delay(10);
   EEPROM.commit();
 }
 
-void PullFromEeprom()
-{
+void PullFromEeprom() {
 #ifdef DBG
   Serial.print("pull EE? ");
 #endif
   uint8_t c;
-  for (int i = 0; i < 46; i++)
-  {
+  for (int i = 0; i < 46; i++) {
     c = EEPROM.read(i);
 #ifdef DBG
     Serial.print(c);
@@ -606,17 +574,15 @@ void PullFromEeprom()
   start_point += sizeof(Output);
   EEPROM.get(start_point, IO_controls);
 #ifdef DBG
-//Serial.print("data");
-//DataToPage();
+  // Serial.print("data");
+  // DataToPage();
   Serial.println();
-  for (int i = 0; i < 4; i++)
-  {
+  for (int i = 0; i < 4; i++) {
     Serial.print(termostatTable[i].teplota);
     Serial.print("-");
     Serial.println(termostatTable[i].cas);
   }
-  for (int i = 0; i < 4; i++)
-  {
+  for (int i = 0; i < 4; i++) {
     Serial.print(spinackyTable[i].casOn);
     Serial.print("-");
     Serial.println(spinackyTable[i].casOff);
@@ -624,8 +590,7 @@ void PullFromEeprom()
   Serial.print(termostatOut.num);
   Serial.print("x");
   Serial.println(spinackyOut.num);
-  for (int i = 0; i < 3; i++)
-  {
+  for (int i = 0; i < 3; i++) {
     Serial.print(IO_controls[i].mode);
     Serial.print("-");
     Serial.print(IO_controls[i].assoc_out->num);
@@ -635,78 +600,80 @@ void PullFromEeprom()
 #endif
 }
 
-void DataToPage()
-{
-//&#T*200_60*200_120*200_180*200_240*#S*60_120*180_240*300_360*420_480*#O*0*1*#IO*0_2|0*1_3|0*-1_-1|0*
-String send_data = "&#T*";
-send_data += String(termostatTable[0].cas) + "_";
-send_data += String(termostatTable[0].teplota)+ "*";
-send_data += String(termostatTable[1].cas) + "_";
-send_data += String(termostatTable[1].teplota)+ "*";
-send_data += String(termostatTable[2].cas) + "_";
-send_data += String(termostatTable[2].teplota)+ "*";
-send_data += String(termostatTable[3].cas) + "_";
-send_data += String(termostatTable[3].teplota)+ "*#S*";
-send_data += String(spinackyTable[0].casOn) + "_";
-send_data += String(spinackyTable[0].casOff)+ "*";
-send_data += String(spinackyTable[1].casOn) + "_";
-send_data += String(spinackyTable[1].casOff)+ "*";
-send_data += String(spinackyTable[2].casOn) + "_";
-send_data += String(spinackyTable[2].casOff)+ "*";
-send_data += String(spinackyTable[3].casOn) + "_";
-send_data += String(spinackyTable[3].casOff)+ "*#O*";
-sint8_t j = 0;
-for (size_t i = 0; i < 4; i++)if(outs[i] == termostatOut.num )j=i;
-send_data += String(j)+ "*";
-j = 0;
-for (size_t i = 0; i < 4; i++)if(outs[i] == spinackyOut.num )j=i;
-send_data += String(j)+ "*#IO*";
-send_data += String(IO_controls[0].mode)+ "_"; 
-j = -1;
-for (size_t i = 0; i < 4; i++)if(IO_controls[0].assoc_out == Outputs + i )j=i;
-send_data += String(j)+ "|";
-send_data += String(IO_controls[0].time)+ "*";
-send_data += String(IO_controls[1].mode)+ "_";
-j = -1;
-for (size_t i = 0; i < 4; i++)if(IO_controls[1].assoc_out == Outputs + i )j=i;
-send_data += String(j)+ "|";
-send_data += String(IO_controls[1].time)+ "*";
-send_data += String(IO_controls[2].mode)+ "_";
-j = -1;
-for (size_t i = 0; i < 4; i++)if(IO_controls[2].assoc_out == Outputs + i )j=i;
-send_data += String(j)+ "|";
-send_data += String(IO_controls[2].time)+ "*";
+void DataToPage() {
+  //&#T*200_60*200_120*200_180*200_240*#S*60_120*180_240*300_360*420_480*#O*0*1*#IO*0_2|0*1_3|0*-1_-1|0*
+  String send_data = "&#T*";
+  send_data += String(termostatTable[0].cas) + "_";
+  send_data += String(termostatTable[0].teplota) + "*";
+  send_data += String(termostatTable[1].cas) + "_";
+  send_data += String(termostatTable[1].teplota) + "*";
+  send_data += String(termostatTable[2].cas) + "_";
+  send_data += String(termostatTable[2].teplota) + "*";
+  send_data += String(termostatTable[3].cas) + "_";
+  send_data += String(termostatTable[3].teplota) + "*#S*";
+  send_data += String(spinackyTable[0].casOn) + "_";
+  send_data += String(spinackyTable[0].casOff) + "*";
+  send_data += String(spinackyTable[1].casOn) + "_";
+  send_data += String(spinackyTable[1].casOff) + "*";
+  send_data += String(spinackyTable[2].casOn) + "_";
+  send_data += String(spinackyTable[2].casOff) + "*";
+  send_data += String(spinackyTable[3].casOn) + "_";
+  send_data += String(spinackyTable[3].casOff) + "*#O*";
+  sint8_t j = 0;
+  for (size_t i = 0; i < 4; i++)
+    if (outs[i] == termostatOut.num) j = i;
+  send_data += String(j) + "*";
+  j = 0;
+  for (size_t i = 0; i < 4; i++)
+    if (outs[i] == spinackyOut.num) j = i;
+  send_data += String(j) + "*#IO*";
+  send_data += String(IO_controls[0].mode) + "_";
+  j = -1;
+  for (size_t i = 0; i < 4; i++)
+    if (IO_controls[0].assoc_out == Outputs + i) j = i;
+  send_data += String(j) + "|";
+  send_data += String(IO_controls[0].time) + "*";
+  send_data += String(IO_controls[1].mode) + "_";
+  j = -1;
+  for (size_t i = 0; i < 4; i++)
+    if (IO_controls[1].assoc_out == Outputs + i) j = i;
+  send_data += String(j) + "|";
+  send_data += String(IO_controls[1].time) + "*";
+  send_data += String(IO_controls[2].mode) + "_";
+  j = -1;
+  for (size_t i = 0; i < 4; i++)
+    if (IO_controls[2].assoc_out == Outputs + i) j = i;
+  send_data += String(j) + "|";
+  send_data += String(IO_controls[2].time) + "*";
 #ifdef DBG
-Serial.println("topage");
+  Serial.println("topage");
 #endif
-unsigned int dl =  send_data.length();
-char msg[dl];
-send_data.toCharArray(msg,dl);
-Serial.println(msg);
-delay(500);
-webSocket.broadcastTXT(msg, dl);
-delay(500);
+  unsigned int dl = send_data.length();
+  char msg[dl];
+  send_data.toCharArray(msg, dl);
+  Serial.println(msg);
+  delay(500);
+  webSocket.broadcastTXT(msg, dl);
+  delay(500);
 }
 
-void ChangeOutput(Output *_out, uint8_t val)
-{
+void ChangeOutput(Output *_out, uint8_t val) {
   uint8_t x = _out->id;
-   char msg[10];
-   sprintf(msg, "#O%d%s", _out->id, val == 1 ? "on" : "of");
+  char msg[10];
+  sprintf(msg, "#O%d%s", _out->id, val == 1 ? "on" : "of");
 #ifdef DBG
   Serial.println(msg);
 #endif
- _out->last_state = val;
+  _out->last_state = val;
   digitalWrite(_out->num, val);
 #ifdef DBG
   Serial.println(_out->last_state);
 #endif
-   webSocket.broadcastTXT(msg, 5);
+  webSocket.broadcastTXT(msg, 5);
 }
 
-void SetIO()
-{
-  //pinMode(D2, INPUT);
+void SetIO() {
+  // pinMode(D2, INPUT);
   pinMode(D2, INPUT_PULLUP);
   pinMode(D3, INPUT_PULLUP);
   pinMode(D4, INPUT_PULLUP);
@@ -746,18 +713,15 @@ void SetIO()
   // IO_controls[3].assoc_out = &Outputs[3];
 }
 
-void ReadAdc()
-{
+void ReadAdc() {
   char msg[10];
   adc_val = analogRead(A0);
-  if(old_adc_val != adc_val)
-  {
+  if (old_adc_val != adc_val) {
     old_adc_val = adc_val;
     sprintf(msg, "#A%04u", adc_val);
-  //  webSocket.broadcastTXT(msg, 6);
-// #ifdef DBG
-//   Serial.println(msg);
-// #endif
+    //  webSocket.broadcastTXT(msg, 6);
+    // #ifdef DBG
+    //   Serial.println(msg);
+    // #endif
   }
-
 }
